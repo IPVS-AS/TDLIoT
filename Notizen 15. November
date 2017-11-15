@@ -12,6 +12,6 @@ Die nächsten Schritte:
 - Aufsetzen der MongoDB auf dem Server (Geoposition)
 - Aufsetzen des SpringBoot Projects in Gitlab inklusive.
 - erste prototypische Methoden
-- Prototypischer Consumer und prototypischer Provider -> Java Stubs
+- Prototypischer Consumer und prototypischer Producer -> Java Stubs
 - Update Funktion so wie im Paper.
 
