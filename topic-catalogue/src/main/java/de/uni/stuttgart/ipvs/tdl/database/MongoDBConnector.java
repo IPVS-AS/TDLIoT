@@ -1,8 +1,8 @@
 package de.uni.stuttgart.ipvs.tdl.database;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -37,34 +37,63 @@ public class MongoDBConnector {
 		mongoClient = new MongoClient(serverIP, port);
 	}
 
+	/**
+	 * Close the connection to the MongoDB.
+	 */
 	public void closeConnection() {
 		mongoClient.close();
 	}
 	
-	public String getMatchedTopicDescriptions(final String id) {
+	/**
+	 * Returns the JSON document to the provided id if the id exists.
+	 * 
+	 * @param id - Searching for this id.
+	 * @return At most one JSON document
+	 */
+	public String getMatchedTopicDescription(final String id) {
 		
-		Document document = new Document("_id",new ObjectId(id));
+		Document document = new Document("_id", new ObjectId(id));
 		
-		return getTable().find(document).first().toJson();
+		Document resultDocument = getTable().find(document).first();
+		
+		if(resultDocument == null) {
+			return null;
+		}
+		
+		return resultDocument.toJson();
 	}
 	
 
+	/**
+	 * Returns all JSON documents with are matching to the provided filter values.
+	 * 
+	 * @param filters - Searching for this filter values.
+	 * @return - All
+	 */
+	public List<String> getMatchedTopicDescriptions(final Map<String, String> filters) {
 
-	public List<String> getMatchedTopicDescriptions(final HashMap<String, String> filters) {
-
+		if(filters == null) {
+			throw new IllegalArgumentException("Filter has to be initialized!");
+		}
+		
 		Document filterDocument = new Document();
 		filterDocument.putAll(filters);
 
-		MongoCursor<Document> cursor = getTable().find(filterDocument).iterator();
 		
 		List<String> results = new LinkedList<String>();
+		
+		MongoCursor<Document> cursor = getTable().find(filterDocument).iterator();
+	
 		try {
+
 		    while (cursor.hasNext()) {
 		    	results.add(cursor.next().toJson());
 		    }
+		    
 		} finally {
-		    cursor.close();
+			cursor.close();
 		}
+
 		return results;
 	}
 	
@@ -75,10 +104,42 @@ public class MongoDBConnector {
 	 * @return id of the new stored JSON document
 	 */
 	public String storeTopicDescription(final String description) {
-		Document document = Document.parse(description);
-		getTable().insertOne(document);
+		Document objectId = Document.parse(description);
+		getTable().insertOne(objectId);
 		
-		return document.getObjectId("_id").toString();
+		return objectId.getObjectId("_id").toString();
+	}
+	
+	/**
+	 * Delete the JSON document with the provided id if the id exists.
+	 * 
+	 * @param id - Delete JSON document with this id.
+	 */
+	public void deleteTopicDescription(final String id) {
+		
+		Document objectId = new Document("_id", new ObjectId(id));
+		getTable().deleteMany(objectId);
+	}
+	
+	/**
+	 * Update the JSON document with the provided id by the provided update parameters.
+	 * 
+	 * @param id - Update JSON document with this id.
+	 * @param updateParameter - Parameter with values for updating.
+	 */
+	public void updateTopicDescription(final String id, final Map<String, String> updateParameter) {
+		
+		if(updateParameter == null || updateParameter.isEmpty()) {
+			throw new IllegalArgumentException("No update parameter available!");
+		}
+		
+		Document objectId = new Document("_id", new ObjectId(id));
+		
+		Document updateParameterDocument = new Document();
+		updateParameterDocument.putAll(updateParameter);
+		Document updateDocument = new Document("$set", updateParameterDocument);
+				
+		getTable().updateOne(objectId, updateDocument);
 	}
 
 	private MongoCollection<Document> getTable() {
