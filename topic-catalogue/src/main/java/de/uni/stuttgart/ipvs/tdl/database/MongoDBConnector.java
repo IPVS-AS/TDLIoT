@@ -114,11 +114,13 @@ public class MongoDBConnector {
 	 * Delete the JSON document with the provided id if the id exists.
 	 * 
 	 * @param id - Delete JSON document with this id.
+	 * 
+	 * @return get
 	 */
-	public void deleteTopicDescription(final String id) {
-		
+	public boolean deleteTopicDescription(final String id) {
 		Document objectId = new Document("_id", new ObjectId(id));
-		getTable().deleteMany(objectId);
+		
+		return getTable().deleteMany(objectId).wasAcknowledged();
 	}
 	
 	/**
@@ -127,7 +129,7 @@ public class MongoDBConnector {
 	 * @param id - Update JSON document with this id.
 	 * @param updateParameter - Parameter with values for updating.
 	 */
-	public void updateTopicDescription(final String id, final Map<String, String> updateParameter) {
+	public boolean updateTopicDescription(final String id, final Map<String, String> updateParameter) {
 		
 		if(updateParameter == null || updateParameter.isEmpty()) {
 			throw new IllegalArgumentException("No update parameter available!");
@@ -139,7 +141,7 @@ public class MongoDBConnector {
 		updateParameterDocument.putAll(updateParameter);
 		Document updateDocument = new Document("$set", updateParameterDocument);
 				
-		getTable().updateOne(objectId, updateDocument);
+		return getTable().updateOne(objectId, updateDocument).wasAcknowledged();
 	}
 
 	private MongoCollection<Document> getTable() {
