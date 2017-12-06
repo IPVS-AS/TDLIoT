@@ -32,7 +32,7 @@ public class TDLRestController {
 	/**
 	 * Database connector.
 	 */
-	public MongoDBConnector dbConnector;
+	public MongoDBConnector dbConnector = new MongoDBConnector();
 
 	/**
 	 * Returns basic information about the API and provides links to the different
