@@ -1,0 +1,31 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'TDLClient',
+                   'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	// https://mvnrepository.com/artifact/javax.json/javax.json-api
+	compile group: 'javax.json', name: 'javax.json-api', version: '1.1.2'
+	compile "org.glassfish:javax.json:1.0.4"
+	compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.10.0'
+	
+	implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2'
+	implementation 'org.glassfish.jersey.core:jersey-client:2.26'
+	implementation 'org.glassfish.jersey.inject:jersey-hk2:2.26'
+    testImplementation 'junit:junit:4.12'
+	
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
