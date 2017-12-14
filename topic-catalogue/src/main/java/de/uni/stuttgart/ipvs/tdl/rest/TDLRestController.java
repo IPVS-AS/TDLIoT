@@ -69,7 +69,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = DELETE, value = "/delete/{id}")
 	@ResponseBody
-	public ResponseEntity<?> deleteTopic(@PathVariable String id) {
+	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
 		if(dbConnector.deleteTopicDescription(id)) {
 		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
 		} else {
@@ -123,9 +123,14 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = POST, value = "/search")
 	@ResponseBody
-	public JSONArray searchTopics(@RequestBody String filters) throws JSONException {
+	public ResponseEntity searchTopics(@RequestBody String filters) throws JSONException {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
-		JSONObject filterJson = new JSONObject(filters).getJSONObject("filters");
+		JSONObject filterJson = new JSONObject(filters);
+		if(filterJson.has("filters")) {
+			filterJson = filterJson.getJSONObject("filters");
+		} else {
+			return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
+		}
 		Iterator keysIterator = filterJson.keys();
 		
 		while(keysIterator.hasNext()) {
@@ -151,7 +156,7 @@ public class TDLRestController {
 		for(String topicDescription: descriptionList) {
 			topicDescriptionJsonArray.add(topicDescription);
 		}
-		return topicDescriptionJsonArray;
+		return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
 	}
 
 	/**
