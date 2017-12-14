@@ -1,8 +1,0 @@
-{
-	"tdl_publish" : ["xxxxzzzz"],
-	"tdl_subscribe" : ["asdf"],
-	"tdl_catalogue" : {
-		"url" : "127.0.0.1",
-		"port" : "8080"
-	} 
-}
