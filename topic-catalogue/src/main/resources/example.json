@@ -1,0 +1,30 @@
+{
+	"data_type":"boolean",
+	"hardware_type":"occupation detection sensor",
+	"location":
+	{
+		"location_type":"city name",
+		"location_value":"Stuttgart"
+	},
+	"message_format":"JSON",
+	"message_structure":
+	{
+		"metamodel_type":"JSON schema",
+		"metamodel":
+		'{
+			"title":"provider_schema",
+			"type":"object",
+			"properties":{
+			"value":{"type":"boolean"},
+			"timestamp":{"type":"integer"},
+			"time_up":{"type":"string"}
+		},
+		"required":["value","timestamp"]
+		}'
+	},
+	"middleware_endpoint":"http://example.com",
+	"owner":"city-of-stuttgart",
+	"path":"/parking-space-monitor",
+	"protocol":"MQTT",
+	"topic_type":"subscription"
+}
