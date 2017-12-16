@@ -99,10 +99,10 @@ public class TdlMqttClient {
 				log.trace("Connected to {} at {}", topic.getString("path"), url);
 			} catch (MqttException e) {
 				// thrown while connecting or subscribing
-				log.warn("Failed to subscribe to topic {}.", topic.toString());
+				log.warn("Failed to subscribe to topic "+ topic.toString(), e);
 			} catch (NullPointerException e) {
 				// thrown if any of the getString fails
-				log.warn("Failed to read middleware path from topic {}.", topic.toString());
+				log.warn("Failed to read middleware path from topic " + topic.toString(), e);
 			}
 		}
 	}
@@ -162,8 +162,12 @@ public class TdlMqttClient {
 	 *         <code>false</code>
 	 */
 	private boolean filterProtocolMQTT(List<JsonObject> topicDescriptions) {
-		// TODO: toString creates "" around the value
-		return topicDescriptions.removeIf(topic -> !topic.get("protocol").toString().equalsIgnoreCase("mqtt"));
+		return topicDescriptions.removeIf(topic -> {
+			if (topic.get("protocol") instanceof JsonString)
+				return !((JsonString)topic.get("protocol")).getString().equalsIgnoreCase("mqtt");
+			else 
+				return true;
+			});
 	}
 
 	/**
@@ -215,6 +219,13 @@ public class TdlMqttClient {
 		check &= topic.containsKey("protocol");
 		check &= topic.containsKey("path");
 		check &= topic.containsKey("middleware_endpoint");
+		try {
+			topic.getString("protocol");
+			topic.getString("path");
+			topic.getString("middleware_endpoint");
+		} catch (NullPointerException|JsonException e) {
+			return false;
+		}
 		return check;
 	}
 }
