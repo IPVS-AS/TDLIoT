@@ -71,7 +71,7 @@ public class TDLRestController {
 	@ResponseBody
 	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
 		if(dbConnector.deleteTopicDescription(id)) {
-		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
+			return new ResponseEntity<HttpStatus>(HttpStatus.OK);
 		} else {
 			return new ResponseEntity<HttpStatus>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -121,7 +121,7 @@ public class TDLRestController {
 	 * 
 	 * We directly throw the JSON exception to the user :)
 	 */
-	@RequestMapping(method = POST, value = "/search")
+	@RequestMapping(method = POST, value = "/search", produces = "application/json; charset=utf-8")
 	@ResponseBody
 	public ResponseEntity searchTopics(@RequestBody String filters) throws JSONException {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
@@ -166,7 +166,7 @@ public class TDLRestController {
 	 *            topic description id
 	 * @return topic description
 	 */
-	@RequestMapping(method = GET, value = "/get/{id}")
+	@RequestMapping(method = GET, value = "/get/{id}", produces = "application/json; charset=utf-8")
 	@ResponseBody
 	public String getTopic(@PathVariable String id) {
 		String topicDescription = dbConnector.getMatchedTopicDescription(id);
