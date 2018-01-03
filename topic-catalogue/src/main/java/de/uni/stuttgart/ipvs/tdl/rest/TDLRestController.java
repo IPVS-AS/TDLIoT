@@ -12,10 +12,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.minidev.json.JSONArray;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +27,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
-import net.minidev.json.JSONArray;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = "catalogue")
 public class TDLRestController {
@@ -35,8 +38,8 @@ public class TDLRestController {
 	public MongoDBConnector dbConnector = new MongoDBConnector();
 
 	/**
-	 * Returns basic information about the API and provides links to the different
-	 * REST methods.
+	 * Returns basic information about the API and provides links to the
+	 * different REST methods.
 	 * 
 	 * @return links to all REST methods.
 	 */
@@ -70,7 +73,7 @@ public class TDLRestController {
 	@RequestMapping(method = DELETE, value = "/delete/{id}")
 	@ResponseBody
 	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
-		if(dbConnector.deleteTopicDescription(id)) {
+		if (dbConnector.deleteTopicDescription(id)) {
 			return new ResponseEntity<HttpStatus>(HttpStatus.OK);
 		} else {
 			return new ResponseEntity<HttpStatus>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -95,11 +98,11 @@ public class TDLRestController {
 			JSONObject updateParameterJson = new JSONObject(tdlAttributes);
 			Iterator keysIterator = updateParameterJson.keys();
 			// Iterate over all update parameter
-			while(keysIterator.hasNext()) {
+			while (keysIterator.hasNext()) {
 				String key = (String) keysIterator.next();
 				updateParameter.put(key, updateParameterJson.getString(key));
 			}
-			if(dbConnector.updateTopicDescription(id, updateParameter)) {
+			if (dbConnector.updateTopicDescription(id, updateParameter)) {
 				return new ResponseEntity<HttpStatus>(HttpStatus.ACCEPTED);
 			} else {
 				return new ResponseEntity<HttpStatus>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -107,53 +110,52 @@ public class TDLRestController {
 		} catch (JSONException e) {
 			return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
 		}
-		
-		
+
 	}
 
 	/**
 	 * Searches for topics based on attributes.
 	 * 
 	 * @param filters
-	 *            tag map of attributes, which have to match with all topics of the
-	 *            result list
+	 *            tag map of attributes, which have to match with all topics of
+	 *            the result list
 	 * @return list of matching topic descriptions
 	 * 
-	 * We directly throw the JSON exception to the user :)
+	 *         We directly throw the JSON exception to the user :)
 	 */
 	@RequestMapping(method = POST, value = "/search", produces = "application/json; charset=utf-8")
 	@ResponseBody
 	public ResponseEntity searchTopics(@RequestBody String filters) throws JSONException {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
 		JSONObject filterJson = new JSONObject(filters);
-		if(filterJson.has("filters")) {
+		if (filterJson.has("filters")) {
 			filterJson = filterJson.getJSONObject("filters");
 		} else {
 			return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
 		}
 		Iterator keysIterator = filterJson.keys();
-		
-		while(keysIterator.hasNext()) {
+
+		while (keysIterator.hasNext()) {
 			String key = (String) keysIterator.next();
-			
+
 			// Check if there is a nested JSONObject
-			if(filterJson.optJSONObject(key)!= null) {
+			if (filterJson.optJSONObject(key) != null) {
 				JSONObject childJson = filterJson.getJSONObject(key);
 				Iterator childKeysIterator = childJson.keys();
-				
+
 				// Iterate over child keys and put the keys together
-				while(childKeysIterator.hasNext()) {
+				while (childKeysIterator.hasNext()) {
 					String childKey = (String) childKeysIterator.next();
-					filterMap.put(key+"."+childKey, childJson.getString(childKey));
+					filterMap.put(key + "." + childKey, childJson.getString(childKey));
 				}
 			} else {
 				filterMap.put(key, filterJson.getString(key));
 			}
 		}
-		
+
 		List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterMap);
 		JSONArray topicDescriptionJsonArray = new JSONArray();
-		for(String topicDescription: descriptionList) {
+		for (String topicDescription : descriptionList) {
 			topicDescriptionJsonArray.add(topicDescription);
 		}
 		return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
@@ -170,7 +172,7 @@ public class TDLRestController {
 	@ResponseBody
 	public String getTopic(@PathVariable String id) {
 		String topicDescription = dbConnector.getMatchedTopicDescription(id);
-		if(null !=topicDescription) {
+		if (null != topicDescription) {
 			return topicDescription;
 		} else {
 			return "{}";
