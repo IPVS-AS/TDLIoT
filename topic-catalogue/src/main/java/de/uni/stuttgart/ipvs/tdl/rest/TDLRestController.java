@@ -58,6 +58,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = POST, value = "/add")
 	@ResponseBody
+	@CrossOrigin
 	public String addNewTopic(@RequestBody String topicDescription) {
 		return dbConnector.storeTopicDescription(topicDescription);
 	}
@@ -71,7 +72,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = DELETE, value = "/delete/{id}")
 	@ResponseBody
-	
+	@CrossOrigin
 	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
 		if(dbConnector.deleteTopicDescription(id)) {
 		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
@@ -92,6 +93,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = PUT, value = "/update/{id}")
 	@ResponseBody
+	@CrossOrigin
 	public ResponseEntity<HttpStatus> updateTopic(@PathVariable String id, @RequestBody String tdlAttributes) {
 		Map<String, String> updateParameter = new HashMap<String, String>();
 		try {
