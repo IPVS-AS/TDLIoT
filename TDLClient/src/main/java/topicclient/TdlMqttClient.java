@@ -13,11 +13,6 @@ import javax.json.JsonException;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -26,19 +21,41 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.unistuttgart.ipvs.tdl.client.TdlUtil;
+
+/**
+ * Topic client for topics supporting the MQTT protocol. Based on a topic
+ * description catalogue. Can connect to several brokers and topics at once.
+ * 
+ */
 public class TdlMqttClient {
 
-	private final Client client = ClientBuilder.newClient();
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
+	/**
+	 * Collection of brokers this client is connected to at the moment
+	 */
 	private final HashMap<String, MqttClient> brokers = new HashMap<>();
-	private final String catalogue;
+	/**
+	 * Util handling the calls to the catalogue
+	 */
+	private final TdlUtil catalogueUtil;
 
+	/**
+	 * Callback used when handling messages
+	 */
 	private MqttCallback defaultCallback = null;
 
+	/**
+	 * Creates a new mqtt client with a topic server url where topics can be loaded
+	 * from.
+	 * 
+	 * @param catalogueUrl
+	 *            url of the server to connect
+	 */
 	public TdlMqttClient(String catalogueUrl) {
 
-		catalogue = catalogueUrl;
+		catalogueUtil = new TdlUtil(catalogueUrl);
 
 		defaultCallback = new MqttCallback() {
 
@@ -61,7 +78,9 @@ public class TdlMqttClient {
 
 	/**
 	 * Subscribe to a single topic with this id.
-	 * @param tdl topic id to subscribe to
+	 * 
+	 * @param tdl
+	 *            topic id to subscribe to
 	 */
 	public void subscribe(String tdl) {
 		subscribe(Arrays.asList(tdl));
@@ -69,16 +88,17 @@ public class TdlMqttClient {
 
 	/**
 	 * Subscribes to a set of topics with the given ids
-	 * @param tdlIDs topic ids to subscribe to
+	 * 
+	 * @param tdlIDs
+	 *            topic ids to subscribe to
 	 */
 	public void subscribe(List<String> tdlIDs) {
 		HashSet<String> noDuplicateIDs = new HashSet<>(tdlIDs.size());
 		tdlIDs.forEach(tdl -> noDuplicateIDs.add(tdl.trim().toLowerCase()));
-		
+
 		LinkedList<JsonObject> topics = new LinkedList<>();
-		WebTarget getTopicServer = client.target(catalogue);
 		for (String tdlId : noDuplicateIDs) {
-			String response = getTopicServer.path(tdlId).request(MediaType.TEXT_PLAIN).get(String.class);
+			String response = catalogueUtil.getTopicDescriptionWithId(tdlId);
 			JsonObject jsonResponse = jsonFromString(response);
 			if (jsonResponse.isEmpty() || !hasAllJsonFields(jsonResponse)) {
 				log.warn("Skip topic without all required fields: {}", response);
@@ -99,7 +119,7 @@ public class TdlMqttClient {
 				log.trace("Connected to {} at {}", topic.getString("path"), url);
 			} catch (MqttException e) {
 				// thrown while connecting or subscribing
-				log.warn("Failed to subscribe to topic "+ topic.toString(), e);
+				log.warn("Failed to subscribe to topic " + topic.toString(), e);
 			} catch (NullPointerException e) {
 				// thrown if any of the getString fails
 				log.warn("Failed to read middleware path from topic " + topic.toString(), e);
@@ -109,13 +129,17 @@ public class TdlMqttClient {
 
 	/**
 	 * Subscribe to a set of topics described by this search filter
-	 * @param filterParameter parameter to filter by
+	 * 
+	 * @param filterParameter
+	 *            parameter to filter by
 	 */
 	public void subscribe(Map<String, String> filterParameter) {
 		Map<String, Object> jsonParameter = new HashMap<>(filterParameter.size());
 		filterParameter.forEach((key, value) -> jsonParameter.put(key, value));
 		JsonObject filter = Json.createObjectBuilder(jsonParameter).build();
-		// TODO: after utils finished
+		JsonObject filterrequest = Json.createObjectBuilder().add("filters", filter).build();
+		List<String> foundTDLs = catalogueUtil.searchTopicDescriptions(filterrequest.toString());
+		subscribe(foundTDLs);
 	}
 
 	/**
@@ -164,10 +188,10 @@ public class TdlMqttClient {
 	private boolean filterProtocolMQTT(List<JsonObject> topicDescriptions) {
 		return topicDescriptions.removeIf(topic -> {
 			if (topic.get("protocol") instanceof JsonString)
-				return !((JsonString)topic.get("protocol")).getString().equalsIgnoreCase("mqtt");
-			else 
+				return !((JsonString) topic.get("protocol")).getString().equalsIgnoreCase("mqtt");
+			else
 				return true;
-			});
+		});
 	}
 
 	/**
@@ -190,10 +214,15 @@ public class TdlMqttClient {
 	}
 
 	/**
-	 * Subscribes to this topic. Reuses brokers to which already a connection to exists. Otherwise a new connection is established.
-	 * @param broker which serves this topic
-	 * @param topic to subscribe to with the standard callback
-	 * @throws MqttException if an error while subscribing or connecting occurred
+	 * Subscribes to this topic. Reuses brokers to which already a connection to
+	 * exists. Otherwise a new connection is established.
+	 * 
+	 * @param broker
+	 *            which serves this topic
+	 * @param topic
+	 *            to subscribe to with the standard callback
+	 * @throws MqttException
+	 *             if an error while subscribing or connecting occurred
 	 */
 	private void subscribeToTopic(String broker, String topic) throws MqttException {
 		if (!broker.startsWith("tcp://") && !broker.startsWith("ssl://")) {
@@ -208,10 +237,13 @@ public class TdlMqttClient {
 		}
 		brokers.get(broker).subscribe(topic);
 	}
-	
+
 	/**
-	 * Helper method which checks if the topic has all fields required to use it in the client
-	 * @param topic to check
+	 * Helper method which checks if the topic has all fields required to use it in
+	 * the client
+	 * 
+	 * @param topic
+	 *            to check
 	 * @return <code>true</code> if all fields are set, <code>false</code> otherwise
 	 */
 	private boolean hasAllJsonFields(JsonObject topic) {
@@ -223,7 +255,7 @@ public class TdlMqttClient {
 			topic.getString("protocol");
 			topic.getString("path");
 			topic.getString("middleware_endpoint");
-		} catch (NullPointerException|JsonException e) {
+		} catch (NullPointerException | JsonException e) {
 			return false;
 		}
 		return check;
