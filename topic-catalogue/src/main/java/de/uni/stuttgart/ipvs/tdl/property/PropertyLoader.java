@@ -23,8 +23,8 @@ public class PropertyLoader {
 		try {
 
 			java.util.Properties prop = getPropertyFile();
-			Properties.setMongoDBServerIP(prop.getProperty(PROPERTY_KEY_MONGODB_SERVER_IP));
-			Properties.setMongoDBServerPort(Integer.parseInt(prop.getProperty(PROPERTY_KEY_MONGODB_SERVER_PORT)));
+			Properties.setMongoDBServerIP(System.getProperty(PROPERTY_KEY_MONGODB_SERVER_IP, prop.getProperty(PROPERTY_KEY_MONGODB_SERVER_IP)));
+			Properties.setMongoDBServerPort(Integer.parseInt(System.getProperty(PROPERTY_KEY_MONGODB_SERVER_PORT,Integer.parseInt(prop.getProperty(PROPERTY_KEY_MONGODB_SERVER_PORT))+"")));
 
 		} catch (IOException e) {
 			LOG.error("Properties Daten fehlgeschlagen", e);
