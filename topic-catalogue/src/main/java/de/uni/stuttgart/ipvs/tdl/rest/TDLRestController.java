@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +43,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = GET, value = "")
 	@ResponseBody
+	@CrossOrigin
 	public String getAPIDescription() {
 		// TODO
 		return "The api has the following urls # HATEOAS";
@@ -69,6 +71,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = DELETE, value = "/delete/{id}")
 	@ResponseBody
+	
 	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
 		if(dbConnector.deleteTopicDescription(id)) {
 		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
@@ -123,6 +126,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = POST, value = "/search")
 	@ResponseBody
+	@CrossOrigin
 	public ResponseEntity searchTopics(@RequestBody String filters) throws JSONException {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
 		JSONObject filterJson = new JSONObject(filters);
@@ -168,6 +172,7 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = GET, value = "/get/{id}")
 	@ResponseBody
+	@CrossOrigin
 	public String getTopic(@PathVariable String id) {
 		String topicDescription = dbConnector.getMatchedTopicDescription(id);
 		if(null !=topicDescription) {
