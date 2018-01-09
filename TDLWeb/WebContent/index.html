@@ -19,9 +19,9 @@
 	<div class="col-sm-4">
 		<h1>Jump to</h1>
 		<div class="list-group">
-			<a class="list-group-item list-group-item-action" href="#descriptions">Topic descriptions</a>
-			<a class="list-group-item list-group-item-action" href="#adddescription">Add topic description</a>
+			<a class="list-group-item list-group-item-action" href="#descriptions">Topic descriptions</a>			
 			<a class="list-group-item list-group-item-action" href="#settings">Settings</a>
+			<a class="list-group-item list-group-item-action" href="#adddescription">Add topic description</a>
 		</div>
 	</div>	
 	<div class="col-sm-4"></div>
@@ -145,77 +145,9 @@
 <div class="row">
 	<div class="col-sm-4"></div>
 	<div class="col-sm-4">
-		<h1 id="adddescription">Add topic description</h1>	
-		Add topic description to catalogue.
-				<table class="table table-bordered">
-			<tr style="background-color: #EEE">
-				<th>Property</th>
-				<th>Value</th>
-			</tr>			
-			<tr>
-				<th>data_type</th>
-				<td>
-					<label><input ng-model="insert.data_type"></label>
-				</td>
-			</tr>
-			<tr>
-				<th>hardware_type</th>
-				<td>
-					<label><input ng-model="insert.hardware_type"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>topic_type</th>
-				<td>
-					<label><input ng-model="insert.topic_type"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>message_format</th>
-				<td>
-					<label><input ng-model="insert.message_format"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>protocol</th>
-				<td>
-					<label><input ng-model="insert.protocol"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>owner</th>
-				<td>
-					<label><input ng-model="insert.owner"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>middleware_endpoint</th>
-				<td>
-					<label><input ng-model="insert.middleware_endpoint"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>path</th>
-				<td>
-					<label><input ng-model="insert.path"></label>
-				</td>				
-			</tr>		
-		</table>
-		<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
-		<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
-		<br/>
-		<div ng-if="idOfNewTopicDescription">
-			<br/>
-			<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from <span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
-		</div>
-	</div>
-	<div class="col-sm-4"></div>
-</div>
-<div class="row rowborder"></div>
-<div class="row">
-	<div class="col-sm-4"></div>
-	<div class="col-sm-4">
-		<h1 id="settings">Settings</h1>		
+	  <h1 id="settings">Settings</h1>	
+	  <a type="button" data-toggle="collapse" data-target="#show_settings" class="btn btn-primary">Show/Hide Settings</a>
+	  <div id="show_settings" class="collapse">
 		<p>Show this columns in upper table:</p>
 		<p class="btn-info">Filter value is always active also when the column is not visible!</p>
 		<table class="table table-bordered">
@@ -346,12 +278,84 @@
 				</td>				
 			</tr>		
 		</table>
-	</div>	
+	   </div>
+	</div>
 	<div class="col-sm-4"></div>	
 </div>
+<div class="row rowborder"></div>
+<div class="row">
+	<div class="col-sm-4"></div>
+	<div class="col-sm-4">
+		<h1 id="adddescription">Add topic description</h1>	
+		Add topic description to catalogue.
+				<table class="table table-bordered">
+			<tr style="background-color: #EEE">
+				<th>Property</th>
+				<th>Value</th>
+			</tr>			
+			<tr>
+				<th>data_type</th>
+				<td>
+					<label><input ng-model="insert.data_type"></label>
+				</td>
+			</tr>
+			<tr>
+				<th>hardware_type</th>
+				<td>
+					<label><input ng-model="insert.hardware_type"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>topic_type</th>
+				<td>
+					<label><input ng-model="insert.topic_type"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>message_format</th>
+				<td>
+					<label><input ng-model="insert.message_format"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>protocol</th>
+				<td>
+					<label><input ng-model="insert.protocol"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>owner</th>
+				<td>
+					<label><input ng-model="insert.owner"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>middleware_endpoint</th>
+				<td>
+					<label><input ng-model="insert.middleware_endpoint"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>path</th>
+				<td>
+					<label><input ng-model="insert.path"></label>
+				</td>				
+			</tr>		
+		</table>
+		<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
+		<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
+		<br/>
+		<div ng-if="idOfNewTopicDescription">
+			<br/>
+			<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from <span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
+		</div>
+	</div>
+	<div class="col-sm-4"></div>
 </div>
 </div>
-
+</div>
+<br>
+<br>
 <script>
 
 var app = angular.module('tdlApp', []);
@@ -475,7 +479,7 @@ app.controller('tdlCtrl', function($scope, $http) {
         	alert('No values available! Please insert values.');
         	return;
         }
-
+	
     	$http({
         	method: 'POST', 
         	url: url + "/add",
