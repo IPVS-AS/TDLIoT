@@ -98,7 +98,7 @@ public class TDLRestController {
 		Map<String, String> updateParameter = new HashMap<String, String>();
 		try {
 			JSONObject updateParameterJson = new JSONObject(tdlAttributes);
-			Iterator keysIterator = updateParameterJson.keys();
+			Iterator<String> keysIterator = updateParameterJson.keys();
 			// Iterate over all update parameter
 			while(keysIterator.hasNext()) {
 				String key = (String) keysIterator.next();
@@ -129,40 +129,46 @@ public class TDLRestController {
 	@RequestMapping(method = POST, value = "/search")
 	@ResponseBody
 	@CrossOrigin
-	public ResponseEntity searchTopics(@RequestBody String filters) throws JSONException {
+	public ResponseEntity<?> searchTopics(@RequestBody String filters) {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
-		JSONObject filterJson = new JSONObject(filters);
-		if(filterJson.has("filters")) {
-			filterJson = filterJson.getJSONObject("filters");
-		} else {
-			return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
-		}
-		Iterator keysIterator = filterJson.keys();
-		
-		while(keysIterator.hasNext()) {
-			String key = (String) keysIterator.next();
-			
-			// Check if there is a nested JSONObject
-			if(filterJson.optJSONObject(key)!= null) {
-				JSONObject childJson = filterJson.getJSONObject(key);
-				Iterator childKeysIterator = childJson.keys();
-				
-				// Iterate over child keys and put the keys together
-				while(childKeysIterator.hasNext()) {
-					String childKey = (String) childKeysIterator.next();
-					filterMap.put(key+"."+childKey, childJson.getString(childKey));
-				}
+		JSONObject filterJson;
+		try {
+			filterJson = new JSONObject(filters);
+			if(filterJson.has("filters")) {
+				filterJson = filterJson.getJSONObject("filters");
 			} else {
-				filterMap.put(key, filterJson.getString(key));
+				return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
 			}
+			Iterator<String> keysIterator = filterJson.keys();
+			
+			while(keysIterator.hasNext()) {
+				String key = (String) keysIterator.next();
+				
+				// Check if there is a nested JSONObject
+				if(filterJson.optJSONObject(key)!= null) {
+					JSONObject childJson = filterJson.getJSONObject(key);
+					Iterator<String> childKeysIterator = childJson.keys();
+					
+					// Iterate over child keys and put the keys together
+					while(childKeysIterator.hasNext()) {
+						String childKey = (String) childKeysIterator.next();
+						filterMap.put(key+"."+childKey, childJson.getString(childKey));
+					}
+				} else {
+					filterMap.put(key, filterJson.getString(key));
+				}
+			}
+			
+			List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterMap);
+			JSONArray topicDescriptionJsonArray = new JSONArray();
+			for(String topicDescription: descriptionList) {
+				topicDescriptionJsonArray.put(topicDescription);
+			}
+			return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
+		} catch (JSONException e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		
-		List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterMap);
-		JSONArray topicDescriptionJsonArray = new JSONArray();
-		for(String topicDescription: descriptionList) {
-			topicDescriptionJsonArray.put(topicDescription);
-		}
-		return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
 	}
 
 	/**
@@ -175,12 +181,12 @@ public class TDLRestController {
 	@RequestMapping(method = GET, value = "/get/{id}")
 	@ResponseBody
 	@CrossOrigin
-	public String getTopic(@PathVariable String id) {
+	public ResponseEntity<String> getTopic(@PathVariable String id) {
 		String topicDescription = dbConnector.getMatchedTopicDescription(id);
 		if(null !=topicDescription) {
-			return topicDescription;
+			return new ResponseEntity<String>(topicDescription, HttpStatus.OK);
 		} else {
-			return "{}";
+			return new ResponseEntity<String>("{}", HttpStatus.OK);
 		}
 	}
 
