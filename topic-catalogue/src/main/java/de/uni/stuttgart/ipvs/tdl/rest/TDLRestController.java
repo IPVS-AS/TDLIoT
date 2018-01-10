@@ -12,7 +12,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.json.JSONArray;
+import net.minidev.json.JSONArray;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = "catalogue")
 public class TDLRestController {
@@ -36,14 +38,13 @@ public class TDLRestController {
 	public MongoDBConnector dbConnector = new MongoDBConnector();
 
 	/**
-	 * Returns basic information about the API and provides links to the different
-	 * REST methods.
+	 * Returns basic information about the API and provides links to the
+	 * different REST methods.
 	 * 
 	 * @return links to all REST methods.
 	 */
 	@RequestMapping(method = GET, value = "")
 	@ResponseBody
-	@CrossOrigin
 	public String getAPIDescription() {
 		// TODO
 		return "The api has the following urls # HATEOAS";
@@ -58,7 +59,6 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = POST, value = "/add")
 	@ResponseBody
-	@CrossOrigin
 	public String addNewTopic(@RequestBody String topicDescription) {
 		return dbConnector.storeTopicDescription(topicDescription);
 	}
@@ -72,10 +72,9 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = DELETE, value = "/delete/{id}")
 	@ResponseBody
-	@CrossOrigin
 	public ResponseEntity<HttpStatus> deleteTopic(@PathVariable String id) {
-		if(dbConnector.deleteTopicDescription(id)) {
-		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
+		if (dbConnector.deleteTopicDescription(id)) {
+			return new ResponseEntity<HttpStatus>(HttpStatus.OK);
 		} else {
 			return new ResponseEntity<HttpStatus>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -93,18 +92,17 @@ public class TDLRestController {
 	 */
 	@RequestMapping(method = PUT, value = "/update/{id}")
 	@ResponseBody
-	@CrossOrigin
 	public ResponseEntity<HttpStatus> updateTopic(@PathVariable String id, @RequestBody String tdlAttributes) {
 		Map<String, String> updateParameter = new HashMap<String, String>();
 		try {
 			JSONObject updateParameterJson = new JSONObject(tdlAttributes);
 			Iterator<String> keysIterator = updateParameterJson.keys();
 			// Iterate over all update parameter
-			while(keysIterator.hasNext()) {
+			while (keysIterator.hasNext()) {
 				String key = (String) keysIterator.next();
 				updateParameter.put(key, updateParameterJson.getString(key));
 			}
-			if(dbConnector.updateTopicDescription(id, updateParameter)) {
+			if (dbConnector.updateTopicDescription(id, updateParameter)) {
 				return new ResponseEntity<HttpStatus>(HttpStatus.ACCEPTED);
 			} else {
 				return new ResponseEntity<HttpStatus>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -112,63 +110,61 @@ public class TDLRestController {
 		} catch (JSONException e) {
 			return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
 		}
-		
-		
+
 	}
 
 	/**
 	 * Searches for topics based on attributes.
 	 * 
 	 * @param filters
-	 *            tag map of attributes, which have to match with all topics of the
-	 *            result list
+	 *            tag map of attributes, which have to match with all topics of
+	 *            the result list
 	 * @return list of matching topic descriptions
 	 * 
-	 * We directly throw the JSON exception to the user :)
+	 *         We directly throw the JSON exception to the user :)
 	 */
-	@RequestMapping(method = POST, value = "/search")
+	@RequestMapping(method = POST, value = "/search", produces = "application/json; charset=utf-8")
 	@ResponseBody
-	@CrossOrigin
-	public ResponseEntity<?> searchTopics(@RequestBody String filters) {
+	public ResponseEntity searchTopics(@RequestBody String filters) {
 		HashMap<String, String> filterMap = new HashMap<String, String>();
 		JSONObject filterJson;
 		try {
 			filterJson = new JSONObject(filters);
-			if(filterJson.has("filters")) {
+			if (filterJson.has("filters")) {
 				filterJson = filterJson.getJSONObject("filters");
 			} else {
 				return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
 			}
 			Iterator<String> keysIterator = filterJson.keys();
-			
-			while(keysIterator.hasNext()) {
+
+			while (keysIterator.hasNext()) {
 				String key = (String) keysIterator.next();
-				
+
 				// Check if there is a nested JSONObject
-				if(filterJson.optJSONObject(key)!= null) {
+				if (filterJson.optJSONObject(key) != null) {
 					JSONObject childJson = filterJson.getJSONObject(key);
 					Iterator<String> childKeysIterator = childJson.keys();
-					
+
 					// Iterate over child keys and put the keys together
-					while(childKeysIterator.hasNext()) {
+					while (childKeysIterator.hasNext()) {
 						String childKey = (String) childKeysIterator.next();
-						filterMap.put(key+"."+childKey, childJson.getString(childKey));
+						filterMap.put(key + "." + childKey, childJson.getString(childKey));
 					}
 				} else {
 					filterMap.put(key, filterJson.getString(key));
 				}
 			}
-			
+
 			List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterMap);
 			JSONArray topicDescriptionJsonArray = new JSONArray();
-			for(String topicDescription: descriptionList) {
-				topicDescriptionJsonArray.put(topicDescription);
+			for (String topicDescription : descriptionList) {
+				topicDescriptionJsonArray.add(topicDescription);
 			}
 			return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
 		} catch (JSONException e) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-		
+
 	}
 
 	/**
@@ -178,12 +174,11 @@ public class TDLRestController {
 	 *            topic description id
 	 * @return topic description
 	 */
-	@RequestMapping(method = GET, value = "/get/{id}")
+	@RequestMapping(method = GET, value = "/get/{id}", produces = "application/json; charset=utf-8")
 	@ResponseBody
-	@CrossOrigin
 	public ResponseEntity<String> getTopic(@PathVariable String id) {
 		String topicDescription = dbConnector.getMatchedTopicDescription(id);
-		if(null !=topicDescription) {
+		if (null != topicDescription) {
 			return new ResponseEntity<String>(topicDescription, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<String>("{}", HttpStatus.OK);
