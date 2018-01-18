@@ -29,6 +29,7 @@ dependencies {
 	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
 	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.5.0'
 	compile group: 'org.json', name: 'json', version: '20171018'
+	compile group: 'net.minidev', name: 'json-smart', version: '1.0.9'
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile group: 'org.mockito', name: 'mockito-all', version: '1.9.5'
 }
