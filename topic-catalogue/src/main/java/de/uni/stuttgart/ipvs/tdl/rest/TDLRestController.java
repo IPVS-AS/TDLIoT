@@ -38,19 +38,6 @@ public class TDLRestController {
 	public MongoDBConnector dbConnector = new MongoDBConnector();
 
 	/**
-	 * Returns basic information about the API and provides links to the
-	 * different REST methods.
-	 * 
-	 * @return links to all REST methods.
-	 */
-	@RequestMapping(method = GET, value = "")
-	@ResponseBody
-	public String getAPIDescription() {
-		// TODO
-		return "The api has the following urls # HATEOAS";
-	}
-
-	/**
 	 * Inserts a new topic to the database.
 	 * 
 	 * @param tdlJSON
