@@ -1,16 +1,22 @@
 package topicclient;
 
+import java.io.IOException;
+import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.json.Json;
 import javax.json.JsonException;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonString;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -36,6 +42,14 @@ public class TdlMqttClient {
 	 * Collection of brokers this client is connected to at the moment
 	 */
 	private final HashMap<String, MqttClient> brokers = new HashMap<>();
+	/**
+	 * Collection of topics with their tdlid as key to avoid duplicates
+	 */
+	private final HashMap<String, String> topics = new HashMap<>();
+	/**
+	 * Collection of links to allow publishing to the correct server
+	 */
+	private final HashMap<String, MqttClient> topicTargets = new HashMap<>();
 	/**
 	 * Util handling the calls to the catalogue
 	 */
@@ -66,7 +80,7 @@ public class TdlMqttClient {
 
 			@Override
 			public void deliveryComplete(IMqttDeliveryToken token) {
-				// do nothing
+				log.info("Message published");
 			}
 
 			@Override
@@ -134,12 +148,27 @@ public class TdlMqttClient {
 	 *            parameter to filter by
 	 */
 	public void subscribe(Map<String, String> filterParameter) {
-		Map<String, Object> jsonParameter = new HashMap<>(filterParameter.size());
-		filterParameter.forEach((key, value) -> jsonParameter.put(key, value));
-		JsonObject filter = Json.createObjectBuilder(jsonParameter).build();
-		JsonObject filterrequest = Json.createObjectBuilder().add("filters", filter).build();
+		JsonObjectBuilder filter = Json.createObjectBuilder();
+		filterParameter.forEach((key, value) -> filter.add(key, value));
+		JsonObject filterrequest = Json.createObjectBuilder().add("filters", filter.build()).build();
 		List<String> foundTDLs = catalogueUtil.searchTopicDescriptions(filterrequest.toString());
-		subscribe(foundTDLs);
+		ArrayList<String> foundIDs = new ArrayList<>(foundTDLs.size());
+		
+		for (String fullTDL : foundTDLs) {
+			try {
+				// StreamTokenizer to unwrap the String-in-String tdl ("\"{...}\"" to "{}")
+				StreamTokenizer parser = new StreamTokenizer(new StringReader(fullTDL));
+				parser.nextToken(); // read in "first" and only token
+				String unmarshalledtopic = parser.sval;
+				JsonObject topic = jsonFromString(unmarshalledtopic);
+				JsonObject oidWrapper = topic.getJsonObject("_id");
+				String tdlId = oidWrapper.getString("$oid");
+				foundIDs.add(tdlId);
+			} catch (Exception e) {
+				log.error("An error while getting the ID from the tdl "+fullTDL+" occurred.", e);
+			}
+		}
+		subscribe(foundIDs);
 	}
 
 	/**
@@ -163,9 +192,10 @@ public class TdlMqttClient {
 	}
 
 	/**
-	 * Closes all subscriptions and clears the list of brokers
+	 * Closes all subscriptions and disconnects the client from all brokers. This
+	 * clears the list of connected brokers.
 	 */
-	public void unsubscribe() {
+	public void disconnect() {
 		brokers.values().forEach(b -> {
 			try {
 				b.disconnect();
@@ -174,6 +204,166 @@ public class TdlMqttClient {
 			}
 		});
 		brokers.clear();
+	}
+
+	/**
+	 * Adds a topic to the list of available topics and connects to the serving
+	 * broker.
+	 * 
+	 * @param tdlId
+	 *            id of the topic in the tdl catalogue
+	 * @return the topic path on the broker, "" if the connection failed (wrong
+	 *         protocol, connection error), <code>null</code> if the topic was
+	 *         missing or did not have the fields set correctly
+	 */
+	public String addPublishTdlId(String tdlId) {
+		String jsontdl = catalogueUtil.getTopicDescriptionWithId(tdlId);
+		return addPublishTdl(jsontdl);
+	}
+
+	/**
+	 * Adds a topic to the list of available topics and connects to the serving
+	 * broker.
+	 * 
+	 * @param fullTdl
+	 *            tdl of the topic as json string
+	 * @return the topic path on the broker, "" if the connection failed (wrong
+	 *         protocol, connection error), <code>null</code> if the topic was
+	 *         missing or did not have the fields set correctly
+	 */
+	public String addPublishTdl(String fullTdl) {
+		JsonObject topic = jsonFromString(fullTdl);
+
+		if (topic.isEmpty() || !hasAllJsonFields(topic)) {
+			log.error("Topic did not provide all required fields: {}", topic);
+			return null;
+		}
+
+		LinkedList<JsonObject> topicWrapper = new LinkedList<>();
+		topicWrapper.add(topic);
+		if (filterProtocolMQTT(topicWrapper)) {
+			log.error("Topic did not support mqtt!");
+			return "";
+		}
+
+		String url = topic.getString("middleware_endpoint");
+		if (!url.startsWith("tcp://") && !url.startsWith("ssl://")) {
+			log.error("{} is not a valid mqtt server address. Has to start with tcp or ssl.", url);
+			return "";
+		}
+
+		JsonObject oidWrapper = topic.getJsonObject("_id");
+		String tdlId = oidWrapper.getString("$oid");
+		try {
+			if (!brokers.containsKey(url)) {
+				MqttClient mqttclient = new MqttClient(url, MqttClient.generateClientId());
+				mqttclient.setCallback(defaultCallback);
+				mqttclient.connect();
+				brokers.put(url, mqttclient);
+			}
+			topics.put(tdlId, topic.getString("path"));
+			topicTargets.put(tdlId, brokers.get(url));
+		} catch (MqttException e) {
+			// thrown while connecting or subscribing
+			log.warn("Failed to connect to topic " + topic.toString(), e);
+			return "";
+		} catch (NullPointerException e) {
+			// thrown if any of the getString fails
+			log.warn("Failed to read middleware path from topic " + topic.toString(), e);
+			return null;
+		}
+
+		return topic.getString("path");
+	}
+
+	/**
+	 * Executes the search with the given search string and tries to add all found
+	 * topics to the this client.
+	 * 
+	 * @param searchJson
+	 *            json string of a filter object with key:value pairs of
+	 *            field:filter
+	 * @return the topic paths on the brokers. No duplicates and no error states.
+	 */
+	public List<String> addPublishSearch(String searchJson) {
+		List<String> tdls = catalogueUtil.searchTopicDescriptions(searchJson);
+		final HashSet<String> addedTopics = new HashSet<>();
+		tdls.forEach(tdl -> {
+			// StreamTokenizer to unwrap the String-in-String tdl ("\"{...}\"" to "{}")
+			try {
+				StreamTokenizer parser = new StreamTokenizer(new StringReader(tdl));
+				parser.nextToken(); // read in "first" and only token
+				String unmarshalledtopic = parser.sval;
+				addedTopics.add(addPublishTdl(unmarshalledtopic));
+			} catch (IOException e) {
+				log.warn("Not a valid server response:" + tdl);
+			}
+		});
+		// remove error
+		addedTopics.remove(null);
+		addedTopics.remove("");
+
+		return new LinkedList<>(addedTopics);
+	}
+
+	/**
+	 * Publish the message to the topic with the given id. If a publisher for this
+	 * topic was not added to this {@link TdlMqttClient} yet, the method will fail
+	 * with a {@link NullPointerException}. In most cases it is enough to use
+	 * publish() with the topic returned by the addPublish methods. Only if the
+	 * topic is not unique, e.g. several brokers with the same topic are stored,
+	 * this method is needed to use the correct one.
+	 * 
+	 * @param topic
+	 *            topic id string from the catalogue to publish to on a broker
+	 * @param message
+	 *            to send as byte array
+	 * @return success, <code>true</code> if publish was successful,
+	 *         <code>false</code> if sending failed.
+	 */
+	public boolean publishById(String topicId, byte[] message) {
+		if (!topics.containsKey(topicId)) {
+			throw new NullPointerException("This topic is not available.");
+		}
+		MqttMessage wrappedMsg = new MqttMessage(message);
+		try {
+			topicTargets.get(topicId).publish(topics.get(topicId), wrappedMsg);
+			return true;
+		} catch (MqttException e) {
+			log.error("Sending of the message to " + topicId + " failed.", e);
+			return false;
+		}
+	}
+
+	/**
+	 * Publish the message to the given topic. If a publisher for this topic was not
+	 * added to this {@link TdlMqttClient} yet, the method will fail with a
+	 * {@link NullPointerException}. The method is greedy: If there are more than
+	 * one broker for this topic added, the first one found is used.
+	 * 
+	 * @param topic
+	 *            topic string to publish to on a broker
+	 * @param message
+	 *            to send as byte array
+	 * @return success, <code>true</code> if publish was successful,
+	 *         <code>false</code> if sending failed.
+	 */
+	public boolean publish(String topic, byte[] message) {
+		for (Entry<String, String> e : topics.entrySet()) {
+			if (e.getValue().equals(topic)) {
+				return publishById(e.getKey(), message);
+			}
+		}
+		throw new NullPointerException("This topic is not available.");
+	}
+
+	/**
+	 * Get a list of unique topics with their paths on the broker.
+	 * 
+	 * @return unmodifiable map of (topicid,topic) pairs currently available
+	 */
+	public Map<String, String> getAvailableTopics() {
+		return Collections.unmodifiableMap(topics);
 	}
 
 	/**
@@ -189,8 +379,7 @@ public class TdlMqttClient {
 		return topicDescriptions.removeIf(topic -> {
 			if (topic.get("protocol") instanceof JsonString)
 				return !((JsonString) topic.get("protocol")).getString().equalsIgnoreCase("mqtt");
-			else
-				return true;
+			return false; // unreachable, because every tdl needs to have this field
 		});
 	}
 
