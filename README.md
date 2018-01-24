@@ -1,5 +1,4 @@
 # TDLIoT
-A Topic Description Language for the Internet of Things
 This repository provides a catalogue which stores "Topic Description Language"- entities. 
 The catalogue provides a number of different interfaces to add, get, search and remove topics. The api is documented with
 swagger and is available under [http://yourHost:8080/swagger-ui.html](http://yourHost:8080/swagger-ui.html)
