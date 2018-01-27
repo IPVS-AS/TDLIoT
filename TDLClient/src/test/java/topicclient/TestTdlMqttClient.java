@@ -15,11 +15,15 @@ import de.unistuttgart.ipvs.tdl.client.TdlUtil;
 
 /**
  * Test of {@link TdlMqttClient} with a catalogue server + broker available.
- *
+ * Adapt the configurations strings to your environment.
  */
 public class TestTdlMqttClient {
 
+	// Test configuration. Fill in your own environment here
 	String catalogue = "http://192.168.209.199:8080/catalogue";
+	String mqttbroker = "tcp://192.168.209.199:1883";
+	
+	// Test variables
 	TdlUtil util = null;
 	TdlMqttClient testclient = null;
 	String validUID = "";
@@ -32,6 +36,7 @@ public class TestTdlMqttClient {
 		// Live server
 		util = new TdlUtil(catalogue);
 
+		TestData.tdldemo = TestData.demoStringWithBroker(mqttbroker);
 		validUID = util.addTopicDescription(TestData.tdlValid);
 		notValidUID = util.addTopicDescription(TestData.tdlInvalid2);
 		notValidUIDField = util.addTopicDescription(TestData.tdlInvalid1);
@@ -51,11 +56,20 @@ public class TestTdlMqttClient {
 
 	@Test
 	public void testDemo() {
+		// demonstration of connect to publish/subscribe broker
 		String topic = testclient.addPublishTdlId(demoUID);
 		Assert.assertEquals("/test", topic);
 		testclient.subscribe(demoUID);
+		// publish something -> receives
 		testclient.publishById(demoUID, "Hallo Welt".getBytes());
 
+		// wait for receive
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+		}
+		
+		// replace callback
 		MqttCallback stringCallback = new MqttCallback() {
 
 			@Override
@@ -81,8 +95,9 @@ public class TestTdlMqttClient {
 
 			}
 		};
-
 		testclient.updateCallback(stringCallback);
+		
+		// publish something again
 		testclient.publish("/test", "Hallo Welt erneut".getBytes());
 	}
 

@@ -5,9 +5,12 @@ package topicclient;
  *
  */
 public final class TestData {
+	// setup existing broker by the test class
+	public static String demoStringWithBroker(String broker) {
+		return "{\"data_type\":\"boolean\",\"hardware_type\":\"virtual\",\"topic_type\":\"demonstration\",\"protocol\":\"MQTT\",\"owner\":\"development\",\"middleware_endpoint\":\""+broker+"\",\"path\": \"/test\"}";
+	}
 
-	public static final String tdlSimple = 	"{\\\"data_type\\\":\\\"boolean\\\",\\\"hardware_type\\\":\\\"virtual\\\",\\\"topic_type\\\":\\\"demonstration\\\",\\\"message_format\\\":\\\"{}\\\",\\\"protocol\\\":\\\"MQTT\\\",\\\"owner\\\":\\\"development\\\",\\\"middleware_endpoint\\\":\\\"tcp://dev.local\\\",\\\"path\\\":\\\"/test\\\"}";
-	public static final String tdldemo = 	"{\\\"data_type\\\":\\\"boolean\\\",\\\"hardware_type\\\":\\\"virtual\\\",\\\"topic_type\\\":\\\"demonstration\\\",\\\"message_format\\\":\\\"{}\\\",\\\"protocol\\\":\\\"MQTT\\\",\\\"owner\\\":\\\"development\\\",\\\"middleware_endpoint\\\":\\\"tcp://192.168.209.199:1883\\\",\\\"path\\\": \\\"/test\\\"}";
+	public static String tdldemo = demoStringWithBroker("tcp://localhost:8080");
 
 	public static final String tdlValid = "{" + "\"data_type\": \"int\","
 			+ "\"hardware_type\": \"occupation detection sensor\"," + "\"protocol\": \"MQTT\","
