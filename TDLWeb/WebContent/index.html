@@ -60,22 +60,22 @@
 				<th ng-show="showHardwareType">
 					hardware_type
 					</br>
-					<label><input ng-model="searchText.hardware_type"></label>
+					<label><input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1"></label>
 				</th>
 				<th ng-show="showTopicType">
 					topic_type
 					</br>
-					<label><input ng-model="searchText.topic_type"></label>
+					<label><input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1"></label>
 				</th>
 				<th ng-show="showMessageFormat">
 					message_format
 					</br>
-					<label><input ng-model="searchText.message_format"></label>
+					<label><input ng-model="searchText.message_format" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1"></label>
 				</th>
 				<th ng-show="showProtocol">
 					protocol
 					</br>
-					<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol=undefined:1">
+					<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol = undefined:1">
 						<option value="">All</option>
 						<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
 							{{v}}
@@ -85,17 +85,17 @@
 				<th ng-show="showOwner">
 					owner
 					</br>
-					<label><input ng-model="searchText.owner"></label>
+					<label><input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1"></label>
 				</th>
 				<th ng-show="showMiddlewareEndpoint">
 					middleware_endpoint
 					</br>
-					<label><input ng-model="searchText.middleware_endpoint"></label>
+					<label><input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1"></label>
 				</th>
 				<th ng-show="showPath">
 					path
 					</br>
-					<label><input ng-model="searchText.path"></label>
+					<label><input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1"></label>
 				</th>
 				<th colspan="3" style="text-align: center">
 					Events
@@ -219,7 +219,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.hardware_type"></label>
+					<label><input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -232,7 +232,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.topic_type"></label>
+					<label><input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -245,7 +245,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.message_format"></label>
+					<label><input ng-model="searchText.message_format" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -276,7 +276,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.owner"></label>
+					<label><input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -289,7 +289,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.middleware_endpoint"></label>
+					<label><input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -302,7 +302,7 @@
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.path"></label>
+					<label><input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1"></label>
 				</td>				
 			</tr>		
 		</table>
