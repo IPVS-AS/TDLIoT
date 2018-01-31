@@ -11,8 +11,11 @@ app.controller('tdlCtrl', function($scope, $http) {
 	                  "middleware_endpoint",
 	                  "path"
 	              ]
+	$scope.isCollapsed = false;
+	var serverUrl = "http://localhost:8080";
 	
-    var url = "http://localhost:8080/catalogue";
+	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";	
+    var url = serverUrl + "/catalogue";
 	
 	$http({
     	method: 'POST', 

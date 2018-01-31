@@ -29,7 +29,7 @@
 	<div class="col-sm-2">
 		<div class="bg-info text-white links-box">
 			<h3 style="margin: 0px">Links</h3>
-			<a href="http://localhost:8080/swagger-ui.html">Swagger</a>
+			<a href="{{swaggerUrl}}">Swagger</a>
 		</div>
 	</div>
 	<div class="col-sm-1"></div>
@@ -164,9 +164,12 @@
 	<div class="col-sm-4"></div>
 	<div class="col-sm-4">
 	  <h1 id="settings">Settings</h1>	
-	  <a type="button" data-toggle="collapse" data-target="#show_settings" class="btn btn-primary">Show/Hide Settings</a>
+	  <a type="button" data-toggle="collapse" data-target="#show_settings" class="btn btn-primary" ng-click="collapseSettings = !collapseSettings" ng-init="collapseSettings = false">
+	  	<span ng-show="collapseSettings">Hide settings</span>
+	  	<span ng-show="!collapseSettings">Show settings</span>
+  	  </a>
 	  <div id="show_settings" class="collapse">
-		<p>Show this columns in upper table:</p>
+		<p>Select columns which should be visible in upper table. Define filters to reduce amount of topic descriptions.</p>
 		<p class="btn-info">Filter value is always active also when the column is not visible!</p>
 		<table class="table table-bordered">
 			<tr style="background-color: #EEE">
