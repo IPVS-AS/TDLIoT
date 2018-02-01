@@ -2,20 +2,20 @@ var app = angular.module('tdlApp', []);
 app.controller('tdlCtrl', function($scope, $http) {
 	
 	$scope.topicDescriptionProperties = [
-	                  "data_type",
-	                  "hardware_type",
-	                  "topic_type",
-	                  "message_format",
-	                  "protocol",
-	                  "owner",
-	                  "middleware_endpoint",
-	                  "path"
-	              ]
-	$scope.isCollapsed = false;
+		"data_type",
+		"hardware_type",
+		"topic_type",
+		"message_format",
+		"protocol",
+		"owner",
+		"middleware_endpoint",
+		"path"
+	]
+
 	var serverUrl = "http://localhost:8080";
 	
 	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";	
-    var url = serverUrl + "/catalogue";
+	var url = serverUrl + "/catalogue";
 	
 	$http({
     	method: 'POST', 
@@ -60,49 +60,49 @@ app.controller('tdlCtrl', function($scope, $http) {
 	};
 	
 	$scope.cancelUpdateTopicDescription = function(topic) {      
-        for(var i in $scope.backUpTopicDescription){
+		for(var i in $scope.backUpTopicDescription){
 			if($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid){
 				$scope.topicDescription[i] = JSON.parse(JSON.stringify($scope.backUpTopicDescription[i]));
 				break;
 			}
-    	} 
+        } 
 	};
 	
 	$scope.updateTopicDescription = function(topic) {
-        $scope.response = null;
+		$scope.response = null;
         
-        var updateBody = {};
-        for(var key in topic){
-        	if(key != "_id"){
-            	updateBody[key] = topic[key];
-        	}
-        }
+		var updateBody = {};
+		for(var key in topic){
+			if(key != "_id"){
+				updateBody[key] = topic[key];
+			}
+		}
         
-        for(var i in $scope.backUpTopicDescription){
+		for(var i in $scope.backUpTopicDescription){
 			if($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid){
 				$scope.backUpTopicDescription[i] = JSON.parse(JSON.stringify(topic));
 				break;
 			}
-    	} 
+		} 
         
-    	$http({
-        	method: 'PUT', 
-        	url: url + "/update/" + topic._id.$oid,
-        	data: updateBody,
-        	headers: { "Content-Type": "application/json" }
-    	}
-        ).then(function(response) {
-	    	$scope.status = response.status;
-	    }, function(response) {
-	        $scope.data = response.data || 'Request failed';
-	        $scope.status = response.status;
-	    });
+		$http({
+			method: 'PUT', 
+			url: url + "/update/" + topic._id.$oid,
+			data: updateBody,
+			headers: { "Content-Type": "application/json" }
+		}
+		).then(function(response) {
+			$scope.status = response.status;
+		}, function(response) {
+			$scope.data = response.data || 'Request failed';
+			$scope.status = response.status;
+		});
 	};
 	
 	$scope.cancelInsertTopicDescription = function() {      
 		for(var property in $scope.insert){
-        	$scope.insert[property] = "";
-    	}   
+			$scope.insert[property] = "";
+		}   
 	};
 	
 	$scope.insertTopicDescription = function() {
@@ -152,9 +152,9 @@ app.controller('tdlCtrl', function($scope, $http) {
 			if(value != null && !result.includes(value)){
 				result.push(value);	
 			}
-	    });
+		});
 
-	    return result;
+		return result;
 	}
 	
 	$scope.getProtocol = function(topicDescriptions) {
@@ -165,8 +165,8 @@ app.controller('tdlCtrl', function($scope, $http) {
 			if(value != null && !result.includes(value)){
 				result.push(value);	
 			}
-	    });
+		});
 
-	    return result;
+		return result;
 	}
 });
