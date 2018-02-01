@@ -171,7 +171,7 @@ public class TestTdlUtilOffline {
 	}
 
 	private void mockTopicServerRequest() {
-		tdlUtil = PowerMockito.spy(tdlUtil);
+		tdlUtil = PowerMockito.spy(new TdlUtil(""));
 		try {
 
 			doReturn("{}").when(tdlUtil, "sendGetRequest", anyString());
