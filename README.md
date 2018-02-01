@@ -19,7 +19,7 @@ The tdl-catalogue is also accessible as docker image and hosted on [Docker Hub](
 ## TDLWeb
 TDLWeb provides a web interface to execute the provided operations of the tdl-catalogue. tdl- entries can be added, removed and edited.
 ![picture alt](https://raw.githubusercontent.com/IPVS-AS/TDLIoT/master/TDLWeb/screenshot.png)
-Before using the web interface, please replace the link to the catalogue in the ```index.html``` and the ```script.js``` file.
+Before using the web interface, please replace the link to the catalogue in the ```script.js``` file.
 ## TDLClient
 The TDLClient provides a library, which automatically creates stubs based on the derived TDL's. The TDL's
 
