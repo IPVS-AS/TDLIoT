@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 import de.uni.stuttgart.ipvs.tdl.rest.TDLRestController;
+import net.minidev.json.JSONArray;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestTDLRestController {
@@ -96,11 +96,11 @@ public class TestTDLRestController {
 		filters.put("hardware_type", "occopation detection sensor");
 
 		JSONArray topicDescriptionJsonArray = new JSONArray();
-		topicDescriptionJsonArray.put(dummyDescription);
+		topicDescriptionJsonArray.add(dummyDescription);
 		ArrayList<String> dummySearchResult = new ArrayList<String>(Arrays.asList(new String[] { dummyDescription }));
 		when(dbConnector.getMatchedTopicDescriptions(filters)).thenReturn(dummySearchResult);
 
-		JSONAssert.assertEquals(topicDescriptionJsonArray, (JSONArray) restController.searchTopics(dummyFilters).getBody(), false);
+		assertEquals(topicDescriptionJsonArray, (JSONArray) restController.searchTopics(dummyFilters).getBody());
 		assertEquals(HttpStatus.OK, restController.searchTopics(dummyFilters).getStatusCode());
 
 	}
@@ -113,7 +113,7 @@ public class TestTDLRestController {
 		filters.put("hardware_type", "occopation detection sensor");
 
 		JSONArray topicDescriptionJsonArray = new JSONArray();
-		topicDescriptionJsonArray.put(dummyDescription);
+		topicDescriptionJsonArray.add(dummyDescription);
 		ArrayList<String> dummySearchResult = new ArrayList<String>(Arrays.asList(new String[] {}));
 		when(dbConnector.getMatchedTopicDescriptions(filters)).thenReturn(dummySearchResult);
 
@@ -131,7 +131,7 @@ public class TestTDLRestController {
 		String dummyFiltersWithoutFilterTag = dummyDescription;
 
 		JSONArray topicDescriptionJsonArray = new JSONArray();
-		topicDescriptionJsonArray.put(dummyDescription);
+		topicDescriptionJsonArray.add(dummyDescription);
 		ArrayList<String> dummySearchResult = new ArrayList<String>(Arrays.asList(new String[] {}));
 		when(dbConnector.getMatchedTopicDescriptions(filters)).thenReturn(dummySearchResult);
 
