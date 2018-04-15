@@ -21,5 +21,20 @@ TDLWeb provides a web interface to execute the provided operations of the tdl-ca
 ![picture alt](https://raw.githubusercontent.com/IPVS-AS/TDLIoT/master/TDLWeb/screenshot.png)
 Before using the web interface, please replace the link to the catalogue in the ```script.js``` file.
 ## TDLClient
-The TDLClient provides a library, which automatically creates stubs based on the derived TDL's. The TDL's
+The TDLClient is a Java library for using the topic catalogue in your project. 
+The contains two parts which can be used independetly: 
+
+
+The main *TDLClient* class provides functionality to publish and subscribe to topics with the MQTT protocol. 
+Instead of extracting the address or topic manually out of the topic description, the client wraps all this functionality. 
+The class provides an interface for subscribing to a single topic tdl, multiple topics or all topics returned by a search. 
+For publishing the TDL of the broker can be added in the same manner and returns the human readable topic name.
+Internally it creates connections to the brokers and manages the send and incoming messages using the [eclipse paho](https://www.eclipse.org/paho/) MQTT client.
+
+
+It relies on the *TDLUtil* class for accessing the topic catalogue. 
+It provides all REST interface possibilities in Java. 
+Below the interactions between the user and the classes are shown with an example:
+There the process of subscribing to a topic is shown with the internal resolution to the address of the broker. 
+![TDLClient example usage](https://raw.githubusercontent.com/IPVS-AS/TDLIoT/master/TDLClient-example.png)
 
