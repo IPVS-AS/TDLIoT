@@ -70,7 +70,17 @@
 				<th ng-show="showMessageFormat">
 					message_format
 					</br>
-					<label><input ng-model="searchText.message_format" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1"></label>
+					<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
+						<option value="">All</option>
+						<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
+							{{v}}
+						</option>
+					</select>
+				</th>
+				<th ng-show="showMessageStructure">
+					message_structure
+					</br>
+					<label><input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1"></label>
 				</th>
 				<th ng-show="showProtocol">
 					protocol
@@ -119,6 +129,10 @@
 				<td ng-if="showMessageFormat">
 					<div ng-hide="updateMode">{{topic.message_format}}</div>
 					<div ng-show="updateMode"><label><input ng-model="topic.message_format"></label></div>
+				</td>
+				<td ng-if="showMessageStructure">
+					<div ng-hide="updateMode">{{topic.message_structure}}</div>
+					<div ng-show="updateMode"><label><input ng-model="topic.message_structure"></label></div>
 				</td>
 				<td ng-if="showProtocol">
 					<div ng-hide="updateMode">{{topic.protocol}}</div>
@@ -243,13 +257,31 @@
 				<td>			
 					<div class="form-check">
 						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showMessageFormat" ng-init="showMessageFormat = false"></input> 
+							<input class="form-check-input" type="checkbox" ng-model="showMessageFormat" ng-init="showMessageFormat = true"></input> 
 							message_format
 						</label>
 					</div>
 				</td>
 				<td>
-					<label><input ng-model="searchText.message_format" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1"></label>
+					<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
+						<option value="">All</option>
+						<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
+							{{v}}
+						</option>
+					</select>
+				</td>				
+			</tr>
+			<tr>
+				<td>			
+					<div class="form-check">
+						<label class="form-check-label">
+							<input class="form-check-input" type="checkbox" ng-model="showMessageStructure" ng-init="showMessageStructure = false"></input> 
+							message_structure
+						</label>
+					</div>
+				</td>
+				<td>
+					<label><input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1"></label>
 				</td>				
 			</tr>
 			<tr>
@@ -347,6 +379,12 @@
 				<th>message_format</th>
 				<td>
 					<label><input ng-model="insert.message_format"></label>
+				</td>				
+			</tr>
+			<tr>
+				<th>message_structure</th>
+				<td>
+					<label><input ng-model="insert.message_structure"></label>
 				</td>				
 			</tr>
 			<tr>

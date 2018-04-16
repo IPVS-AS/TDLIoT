@@ -6,13 +6,14 @@ app.controller('tdlCtrl', function($scope, $http) {
 		"hardware_type",
 		"topic_type",
 		"message_format",
+		"message_structure",
 		"protocol",
 		"owner",
 		"middleware_endpoint",
 		"path"
 	]
 
-	var serverUrl = "http://localhost:8080";
+	var serverUrl = "http://192.168.209.199:8080";
 	
 	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";	
 	var url = serverUrl + "/catalogue";
@@ -162,6 +163,19 @@ app.controller('tdlCtrl', function($scope, $http) {
 
 		angular.forEach(topicDescriptions, function(topic, key) {
 			var value = topic.protocol;
+			if(value != null && !result.includes(value)){
+				result.push(value);	
+			}
+		});
+
+		return result;
+	}
+	
+	$scope.getMessageFormat = function(topicDescriptions) {
+		var result = [];
+
+		angular.forEach(topicDescriptions, function(topic, key) {
+			var value = topic.message_format;
 			if(value != null && !result.includes(value)){
 				result.push(value);	
 			}
