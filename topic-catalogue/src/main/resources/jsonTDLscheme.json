@@ -1,0 +1,139 @@
+{
+  "definitions": {
+    "policy_assertion": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "properties": {
+            "value": {
+              "type": [
+                "string",
+                "boolean",
+                "number",
+                "integer"
+              ]
+            },
+            "datatype": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value", "datatype"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string"
+          ]
+        },
+        "assertions": {
+          "$ref": "#/definitions/list_assertions"
+        }
+      },
+      "required": [
+          "name"
+      ]
+    },
+    "list_assertions": {
+      "properties": {
+        "item_dependency": {
+          "type": "string",
+          "enum": ["xor", "and"]
+        },
+        "child_assertions":{
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/policy_assertion"
+          },
+          "required": [
+            "item_dependency", "child_assertions"
+          ]
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "data_type": {
+      "type": "string"
+    },
+    "hardware_type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "location_type": {
+          "type": "string"
+        },
+        "location_value": {
+          "type": "string"
+        }
+      }
+    },
+    "message_format": {
+      "type": "string"
+    },
+    "message_structure": {
+      "type": "string"
+    },
+    "middleware_endpoint": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "topic_type": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "object",
+          "properties": {
+            "assertions": {
+              "$ref": "#/definitions/list_assertions"
+            }
+          },
+          "required": [
+            "assertions"
+          ]
+        },
+        "message": {
+          "type": "object",
+          "properties": {
+            "assertions": {
+              "$ref": "#/definitions/list_assertions"
+            }
+          },
+          "required": [
+            "assertions"
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+      "data_type",
+      "message_format",
+      "message_structure",
+      "middleware_endpoint",
+      "owner",
+      "path",
+      "protocol",
+      "topic_type"
+  ]
+}

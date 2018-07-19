@@ -1,5 +1,6 @@
 package de.uni.stuttgart.ipvs.tdl.rest;
 
+import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -25,6 +26,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.main.JsonValidator;
+import com.google.common.collect.Lists;
+
+import java.io.File;
+import java.io.IOException;
 
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 
@@ -38,6 +49,16 @@ public class TDLRestController {
 	public MongoDBConnector dbConnector = new MongoDBConnector();
 
 	/**
+	 * Validator
+	 */
+	private static final JsonValidator VALIDATOR = JsonSchemaFactory.byDefault().getValidator();
+
+    /**
+     * TDL scheme as node
+     */
+	private JsonNode schemeNode = null;
+
+	/**
 	 * Inserts a new topic to the database.
 	 * 
 	 * @param tdlJSON
@@ -47,7 +68,25 @@ public class TDLRestController {
 	@RequestMapping(method = POST, value = "/add")
 	@ResponseBody
 	public String addNewTopic(@RequestBody String topicDescription) {
-		return dbConnector.storeTopicDescription(topicDescription);
+		try {
+			this.schemeNode = JsonLoader.fromFile(new File("src/main/resources/jsonTDLscheme.json"));
+			JsonNode newTopicNode = JsonLoader.fromString(topicDescription);
+			ProcessingReport proRep = VALIDATOR.validate(schemeNode, newTopicNode);
+			if (proRep.isSuccess()) {
+				return dbConnector.storeTopicDescription(topicDescription);
+			} else {
+				List messages = Lists.newArrayList(proRep);
+				for (Object message : messages) {
+					System.out.println(message.toString());
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ProcessingException e) {
+			e.printStackTrace();
+		}
+		return HttpStatus.BAD_REQUEST.toString();
+
 	}
 
 	/**
