@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt-get -qy update
+
 #### installing docker
 installed=$(dpkg -s docker-ce| grep installed)
 
@@ -29,4 +31,4 @@ cd topic-catalogue
 docker-compose up -d
 
 cd ../TDLWeb/WebContent/
-sudo cp -R * var/www/html 
+sudo cp -R * /var/www/html
