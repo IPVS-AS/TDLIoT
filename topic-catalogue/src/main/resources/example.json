@@ -11,7 +11,7 @@
 	{
 		"metamodel_type":"JSON schema",
 		"metamodel":
-		'{
+		{
 			"title":"provider_schema",
 			"type":"object",
 			"properties":{
@@ -20,7 +20,7 @@
 			"time_up":{"type":"string"}
 		},
 		"required":["value","timestamp"]
-		}'
+		}
 	},
 	"middleware_endpoint":"http://example.com",
 	"owner":"city-of-stuttgart",

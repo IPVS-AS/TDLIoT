@@ -1,459 +1,690 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<link rel="stylesheet" href="lib/css/bootstrap.min.css" ></link>
-	
+	<link rel="stylesheet" href="lib/css/bootstrap.min.css">
+	</link>
+
 	<script src="lib/js/jquery-3.2.1.min.js"></script>
 	<script src="lib/js/bootstrap.min.js"></script>
 	<script src="lib/js/angular.min.js"></script>
 	<script src="lib/js/script.js"></script>
 	<title>Topic Description Catalogue</title>
 </head>
-<body>
-<div ng-app="tdlApp" ng-controller="tdlCtrl">
-	<div class="jumbotron jumbotron-fluid text-center" style="padding: 10px">
-	  <h1>Topic Description Catalogue</h1>
-	</div>
-<div class="container-fluid">
-<div class="row">
-	<div class="col-sm-4"></div>
-	<div class="col-sm-4">
-		<h1>Jump to</h1>
-		<div class="list-group">
-			<a class="list-group-item list-group-item-action" href="#descriptions">Topic descriptions</a>			
-			<a class="list-group-item list-group-item-action" href="#settings">Settings</a>
-			<a class="list-group-item list-group-item-action" href="#adddescription">Add topic description</a>
-		</div>
-	</div>	
-	<div class="col-sm-1"></div>
-	<div class="col-sm-2">
-		<div class="bg-info text-white links-box">
-			<h3 style="margin: 0px">Links</h3>
-			<a href="{{swaggerUrl}}">Swagger</a>
-		</div>
-	</div>
-	<div class="col-sm-1"></div>
-</div>
-<div class="row rowborder"></div>
-<div class="row">
-	<div class="col-sm-1"></div>
-	<div class="col-sm-10">
-		<h1 id="descriptions">Topic descriptions</h1>
-		<p>All available topic descriptions which are matching to the provided filter values.</p>
-		<table class="table table-bordered">
-			<tr style="background-color: #EEE">
-				<th ng-show="showId">
-					id
-					</br>
-					<label><input ng-model="searchText._id.$oid"></label>
-				</th>
-				<th ng-show="showDataType">
-					data_type
-					</br>
-					<select ng-model="searchText.data_type" class="dropdown-input" ng-change="searchText.data_type==''?searchText.data_type=undefined:1">
-						<option value>All</option>
-						<option ng-repeat="v in getDataTypes(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</th>
-				<th ng-show="showHardwareType">
-					hardware_type
-					</br>
-					<label><input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1"></label>
-				</th>
-				<th ng-show="showTopicType">
-					topic_type
-					</br>
-					<label><input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1"></label>
-				</th>
-				<th ng-show="showMessageFormat">
-					message_format
-					</br>
-					<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
-						<option value="">All</option>
-						<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</th>
-				<th ng-show="showMessageStructure">
-					message_structure
-					</br>
-					<label><input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1"></label>
-				</th>
-				<th ng-show="showProtocol">
-					protocol
-					</br>
-					<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol = undefined:1">
-						<option value="">All</option>
-						<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</th>
-				<th ng-show="showOwner">
-					owner
-					</br>
-					<label><input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1"></label>
-				</th>
-				<th ng-show="showMiddlewareEndpoint">
-					middleware_endpoint
-					</br>
-					<label><input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1"></label>
-				</th>
-				<th ng-show="showPath">
-					path
-					</br>
-					<label><input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1"></label>
-				</th>
-				<th colspan="3" style="text-align: center">
-					Events
-				</th>
-			</tr>
-			<tr ng-repeat="topic in topicDescription | filter:searchText">
-				<td ng-if="showId">{{topic._id.$oid}}
-				</td>
-				<td ng-if="showDataType">
-					<div ng-hide="updateMode">{{topic.data_type}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.data_type"></label></div>
-				</td>
-				<td ng-if="showHardwareType">
-					<div ng-hide="updateMode">{{topic.hardware_type}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.hardware_type"></label></div>
-				</td>
-				<td ng-if="showTopicType">
-					<div ng-hide="updateMode">{{topic.topic_type}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.topic_type"></label></div>
-				</td>
-				<td ng-if="showMessageFormat">
-					<div ng-hide="updateMode">{{topic.message_format}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.message_format"></label></div>
-				</td>
-				<td ng-if="showMessageStructure">
-					<div ng-hide="updateMode">{{topic.message_structure}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.message_structure"></label></div>
-				</td>
-				<td ng-if="showProtocol">
-					<div ng-hide="updateMode">{{topic.protocol}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.protocol"></label></div>
-				</td>
-				<td ng-if="showOwner">
-					<div ng-hide="updateMode">{{topic.owner}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.owner"></label></div>
-				</td>
-				<td ng-if="showMiddlewareEndpoint">
-					<div ng-hide="updateMode">{{topic.middleware_endpoint}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.middleware_endpoint"></label></div>
-				</td>
-				<td ng-if="showPath">
-					<div ng-hide="updateMode">{{topic.path}}</div>
-					<div ng-show="updateMode"><label><input ng-model="topic.path"></label></div>
-				</td>
-				<td class="borderless">
-					<a type="button" data-toggle="collapse" data-target="#complete_{{topic._id.$oid}}" class="btn btn-primary">Show JSON</a>
-					<div id="complete_{{topic._id.$oid}}" class="collapse">
-						<pre>{{topic | json}}</pre>
-					</div>
-				</td>
-				<td ng-hide="updateMode" class="borderless">
-					<button type="button" class="btn btn-success" ng-click="updateMode=true">Update</button>
-				</td>
-				<td ng-show="updateMode" class="borderless">
-					<button type="button" class="btn btn-success" ng-click="updateMode=false; updateTopicDescription(topic)" >Save</button>
-				</td>
-				<td ng-show="updateMode" class="borderless">
-					<button type="button" class="btn btn-warning" ng-click="updateMode=false; cancelUpdateTopicDescription(topic)">Cancel</button>
-				</td>
-				<td ng-hide="updateMode" class="borderless">
-					<a type="button" ng-click="removeTopicDescription(topic)" class="btn btn-danger">Delete</a>
-				</td>
-			</tr>
-		</table>
-	</div>
-	<div class="col-sm-1"></div>
-</div>
-<div class="row rowborder"></div>
-<div class="row">
-	<div class="col-sm-4"></div>
-	<div class="col-sm-4">
-	  <h1 id="settings">Settings</h1>	
-	  <a type="button" data-toggle="collapse" data-target="#show_settings" class="btn btn-primary" 
-	  		ng-click="collapseSettings = !collapseSettings" ng-init="collapseSettings = false" style="width: 120px">
-	  	<span ng-show="collapseSettings">Hide settings</span>
-	  	<span ng-show="!collapseSettings">Show settings</span>
-  	  </a>
-	  <div id="show_settings" class="collapse">
-		<p>Select columns which should be visible in upper table. Define filters to reduce amount of topic descriptions.</p>
-		<p class="btn-info">Filter value is always active also when the column is not visible!</p>
-		<table class="table table-bordered">
-			<tr style="background-color: #EEE">
-				<th>
-					Property
-				</th>
-				<th>
-					Filter value
-				</th>
-			</tr>
-			<tr>
-				<td>
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showId" ng-init="showId = true"></input> 
-							id
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText._id.$oid"></label>
-				</td>
-			</tr>
-			
-			<tr>
-				<td>
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showDataType" ng-init="showDataType = true"></input> 
-							data_type
-						</label>
-					</div>
-				</td>
-				<td>
-					<select ng-model="searchText.data_type" class="dropdown-input" ng-change="searchText.data_type==''?searchText.data_type=undefined:1">
-						<option value>All</option>
-						<option ng-repeat="v in getDataTypes(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showHardwareType" ng-init="showHardwareType = true"></input> 
-							hardware_type
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1"></label>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showTopicType" ng-init="showTopicType = false"></input> 
-							topic_type
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1"></label>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showMessageFormat" ng-init="showMessageFormat = true"></input> 
-							message_format
-						</label>
-					</div>
-				</td>
-				<td>
-					<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
-						<option value="">All</option>
-						<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showMessageStructure" ng-init="showMessageStructure = false"></input> 
-							message_structure
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1"></label>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showProtocol" ng-init="showProtocol = true"></input> 
-							protocol
-						</label>
-					</div>
-				</td>
-				<td>
-					<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol=undefined:1">
-						<option value="">All</option>
-						<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
-							{{v}}
-						</option>
-					</select>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = true"></input> 
-							owner
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1"></label>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showMiddlewareEndpoint" ng-init="showMiddlewareEndpoint = false"></input> 
-							middleware_endpoint
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1"></label>
-				</td>				
-			</tr>
-			<tr>
-				<td>			
-					<div class="form-check">
-						<label class="form-check-label">
-							<input class="form-check-input" type="checkbox" ng-model="showPath" ng-init="showPath = false"></input> 
-							path
-						</label>
-					</div>
-				</td>
-				<td>
-					<label><input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1"></label>
-				</td>				
-			</tr>		
-		</table>
-	   </div>
-	</div>
-	<div class="col-sm-4"></div>	
-</div>
-<div class="row rowborder"></div>
-<div class="row">
-	<div class="col-sm-4"></div>
-	<div class="col-sm-4">
-		<h1 id="adddescription">Add topic description</h1>	
-		Add topic description to catalogue.
-				<table class="table table-bordered">
-			<tr style="background-color: #EEE">
-				<th>Property</th>
-				<th>Value</th>
-			</tr>			
-			<tr>
-				<th>data_type</th>
-				<td>
-					<label><input ng-model="insert.data_type"></label>
-				</td>
-			</tr>
-			<tr>
-				<th>hardware_type</th>
-				<td>
-					<label><input ng-model="insert.hardware_type"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>topic_type</th>
-				<td>
-					<label><input ng-model="insert.topic_type"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>message_format</th>
-				<td>
-					<label><input ng-model="insert.message_format"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>message_structure</th>
-				<td>
-					<label><input ng-model="insert.message_structure"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>protocol</th>
-				<td>
-					<label><input ng-model="insert.protocol"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>owner</th>
-				<td>
-					<label><input ng-model="insert.owner"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>middleware_endpoint</th>
-				<td>
-					<label><input ng-model="insert.middleware_endpoint"></label>
-				</td>				
-			</tr>
-			<tr>
-				<th>path</th>
-				<td>
-					<label><input ng-model="insert.path"></label>
-				</td>				
-			</tr>		
-		</table>
-		<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
-		<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
-		<br/>
-		<div ng-if="idOfNewTopicDescription">
-			<br/>
-			<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from <span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
-		</div>
-	</div>
-	<div class="col-sm-4"></div>
-</div>
-</div>
-</div>
-<br>
-<br>
-<style type="text/css">
 
-	.borderless {
-		border: 0 !important
-	}
-	
-	.btn {
-		min-width: 75px
-	}
-	
-	.rowborder {
-		background-color: #EEE;
-		height: 50px;
-		margin-top: 30px;
-		margin-bottom: 20px;
-	}
-	
-	.links-box{
-		border-radius: 25px;
-		padding: 20px;
-		margin-top: 20%;
-	}
-	
-	.dropdown-input{
-		padding: 2px;
-		height: 26px;
-	}
-</style>
+<body>
+	<div ng-app="tdlApp" ng-controller="tdlCtrl">
+		<div class="jumbotron jumbotron-fluid text-center" style="padding: 10px">
+			<h1>Topic Description Catalogue</h1>
+		</div>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-4"></div>
+				<div class="col-sm-4">
+					<h1>Jump to</h1>
+					<div class="list-group">
+						<a class="list-group-item list-group-item-action" href="#descriptions">Topic descriptions</a>
+						<a class="list-group-item list-group-item-action" href="#settings">Settings</a>
+						<a class="list-group-item list-group-item-action" href="#adddescription">Add topic description</a>
+					</div>
+				</div>
+				<div class="col-sm-1"></div>
+				<div class="col-sm-2">
+					<div class="bg-info text-white links-box">
+						<h3 style="margin: 0px">Links</h3>
+						<a href="{{swaggerUrl}}">Swagger</a>
+					</div>
+				</div>
+				<div class="col-sm-1"></div>
+			</div>
+			<div class="row rowborder"></div>
+			<div class="row">
+				<div class="col-sm-1"></div>
+				<div class="col-sm-10">
+					<h1 id="descriptions">Topic descriptions</h1>
+					<p>All available topic descriptions which are matching to the provided filter values.</p>
+					<table class="table table-bordered">
+						<tr style="background-color: #EEE">
+							<th ng-show="showId">
+								id
+								</br>
+								<label>
+									<input ng-model="searchText._id.$oid">
+								</label>
+							</th>
+							<th ng-show="showDataType">
+								data_type
+								</br>
+								<select ng-model="searchText.data_type" class="dropdown-input" ng-change="searchText.data_type==''?searchText.data_type=undefined:1">
+									<option value>All</option>
+									<option ng-repeat="v in getDataTypes(topicDescription)" value="{{v}}">
+										{{v}}
+									</option>
+								</select>
+							</th>
+							<th ng-show="showHardwareType">
+								hardware_type
+								</br>
+								<label>
+									<input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1">
+								</label>
+							</th>
+							<th ng-show="showTopicType">
+								topic_type
+								</br>
+								<label>
+									<input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1">
+								</label>
+							</th>
+							<th ng-show="showMessageFormat">
+								message_format
+								</br>
+								<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
+									<option value="">All</option>
+									<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
+										{{v}}
+									</option>
+								</select>
+							</th>
+							<th ng-show="showMessageStructure">
+								message_structure
+								</br>
+								<label>
+									<input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1">
+								</label>
+							</th>
+							<th ng-show="showProtocol">
+								protocol
+								</br>
+								<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol = undefined:1">
+									<option value="">All</option>
+									<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
+										{{v}}
+									</option>
+								</select>
+							</th>
+							<th ng-show="showOwner">
+								owner
+								</br>
+								<label>
+									<input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1">
+								</label>
+							</th>
+							<th ng-show="showMiddlewareEndpoint">
+								middleware_endpoint
+								</br>
+								<label>
+									<input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1">
+								</label>
+							</th>
+							<th ng-show="showPath">
+								path
+								</br>
+								<label>
+									<input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1">
+								</label>
+							</th>
+							<th colspan="3" style="text-align: center">
+								Events
+							</th>
+						</tr>
+						<tr ng-repeat="topic in topicDescription | filter:searchText">
+							<td ng-if="showId">{{topic._id.$oid}}
+							</td>
+							<td ng-if="showDataType">
+								<div ng-hide="updateMode">{{topic.data_type}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.data_type">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showHardwareType">
+								<div ng-hide="updateMode">{{topic.hardware_type}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.hardware_type">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showTopicType">
+								<div ng-hide="updateMode">{{topic.topic_type}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.topic_type">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showMessageFormat">
+								<div ng-hide="updateMode">{{topic.message_format}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.message_format">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showMessageStructure">
+								<div ng-hide="updateMode">{{topic.message_structure}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.message_structure">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showProtocol">
+								<div ng-hide="updateMode">{{topic.protocol}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.protocol">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showOwner">
+								<div ng-hide="updateMode">{{topic.owner}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.owner">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showMiddlewareEndpoint">
+								<div ng-hide="updateMode">{{topic.middleware_endpoint}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.middleware_endpoint">
+									</label>
+								</div>
+							</td>
+							<td ng-if="showPath">
+								<div ng-hide="updateMode">{{topic.path}}</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.path">
+									</label>
+								</div>
+							</td>
+							<td class="borderless">
+								<a type="button" data-toggle="collapse" data-target="#complete_{{topic._id.$oid}}" class="btn btn-primary">Show JSON</a>
+								<div id="complete_{{topic._id.$oid}}" class="collapse">
+									<pre>{{topic | json}}</pre>
+								</div>
+							</td>
+							<td ng-hide="updateMode" class="borderless">
+								<button type="button" class="btn btn-success" ng-click="updateMode=true">Update</button>
+							</td>
+							<td ng-show="updateMode" class="borderless">
+								<button type="button" class="btn btn-success" ng-click="updateMode=false; updateTopicDescription(topic)">Save</button>
+							</td>
+							<td ng-show="updateMode" class="borderless">
+								<button type="button" class="btn btn-warning" ng-click="updateMode=false; cancelUpdateTopicDescription(topic)">Cancel</button>
+							</td>
+							<td ng-hide="updateMode" class="borderless">
+								<a type="button" ng-click="removeTopicDescription(topic)" class="btn btn-danger">Delete</a>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div class="col-sm-1"></div>
+			</div>
+			<div class="row rowborder"></div>
+			<div class="row">
+				<div class="col-sm-4"></div>
+				<div class="col-sm-4">
+					<h1 id="settings">Settings</h1>
+					<a type="button" data-toggle="collapse" data-target="#show_settings" class="btn btn-primary" ng-click="collapseSettings = !collapseSettings"
+					 ng-init="collapseSettings = false" style="width: 120px">
+						<span ng-show="collapseSettings">Hide settings</span>
+						<span ng-show="!collapseSettings">Show settings</span>
+					</a>
+					<div id="show_settings" class="collapse">
+						<p>Select columns which should be visible in upper table. Define filters to reduce amount of topic descriptions.</p>
+						<p class="btn-info">Filter value is always active also when the column is not visible!</p>
+						<table class="table table-bordered">
+							<tr style="background-color: #EEE">
+								<th>
+									Property
+								</th>
+								<th>
+									Filter value
+								</th>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showId" ng-init="showId = true"></input>
+											id
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText._id.$oid">
+									</label>
+								</td>
+							</tr>
+
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showDataType" ng-init="showDataType = true"></input>
+											data_type
+										</label>
+									</div>
+								</td>
+								<td>
+									<select ng-model="searchText.data_type" class="dropdown-input" ng-change="searchText.data_type==''?searchText.data_type=undefined:1">
+										<option value>All</option>
+										<option ng-repeat="v in getDataTypes(topicDescription)" value="{{v}}">
+											{{v}}
+										</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showHardwareType" ng-init="showHardwareType = true"></input>
+											hardware_type
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showTopicType" ng-init="showTopicType = false"></input>
+											topic_type
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showMessageFormat" ng-init="showMessageFormat = true"></input>
+											message_format
+										</label>
+									</div>
+								</td>
+								<td>
+									<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
+										<option value="">All</option>
+										<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
+											{{v}}
+										</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showMessageStructure" ng-init="showMessageStructure = false"></input>
+											message_structure
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showProtocol" ng-init="showProtocol = true"></input>
+											protocol
+										</label>
+									</div>
+								</td>
+								<td>
+									<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol=undefined:1">
+										<option value="">All</option>
+										<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
+											{{v}}
+										</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = true"></input>
+											owner
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showMiddlewareEndpoint" ng-init="showMiddlewareEndpoint = false"></input>
+											middleware_endpoint
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showPath" ng-init="showPath = false"></input>
+											path
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1">
+									</label>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="col-sm-4"></div>
+			</div>
+			<div class="row rowborder"></div>
+			<div class="row">
+				<div class="col-sm-1"></div>
+				<div class="col-sm-10">
+					<div class="row">
+						<div class="col-sm-4">
+							<h1 id="adddescription">Add topic description</h1>
+							Add topic description to catalogue.
+							<table class="table table-bordered">
+								<tr style="background-color: #EEE">
+									<th>Property</th>
+									<th>Value</th>
+								</tr>
+								<tr>
+									<th>data_type</th>
+									<td>
+										<label>
+											<input ng-model="insert.data_type">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>hardware_type</th>
+									<td>
+										<label>
+											<input ng-model="insert.hardware_type">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>topic_type</th>
+									<td>
+										<label>
+											<input ng-model="insert.topic_type">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>message_format</th>
+									<td>
+										<label>
+											<input ng-model="insert.message_format">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>message_structure</th>
+									<td>
+										<label>
+											<input ng-model="insert.message_structure">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>protocol</th>
+									<td>
+										<label>
+											<input ng-model="insert.protocol">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>owner</th>
+									<td>
+										<label>
+											<input ng-model="insert.owner">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>middleware_endpoint</th>
+									<td>
+										<label>
+											<input ng-model="insert.middleware_endpoint">
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<th>path</th>
+									<td>
+										<label>
+											<input ng-model="insert.path">
+										</label>
+									</td>
+								</tr>
+							</table>
+							<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
+							<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
+							<br/>
+							<div ng-if="idOfNewTopicDescription">
+								<br/>
+								<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
+								<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<h1 id="addpolicy">Add Policy</h1>
+							Catalogue
+							<div class="tab" id="PolicyCatalog"></div>
+							<div id="Reliabilty" class="tabcontent">
+								<h3>Reliabilty</h3>
+								<p>Defines the reliability of the topic</p>
+								Inputvalues:
+								<table class="table table-bordered">
+									<tr style="background-color: #EEE">
+										<th>Name</th>
+										<th>Datatype</th>
+										<th>Description</th>
+										<th>Values</th>
+									</tr>
+									<tr>
+										<th>name</th>
+										<th>[string]</th>
+										<th>Unique name to describe the policy</th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<th>cost</th>
+										<th>[number]</th>
+										<th>Real value of the cost</th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<th>cost_timespan</th>
+										<th>[string]</th>
+										<th>Timespan in which <i>cost</i> are calculated</th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<th>currency</th>
+										<th>[string]</th>
+										<th>Currency of <i>cost</i></th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<th>values</th>
+										<th>[int]</th>
+										<th>Provided values within a timespan (<i>values_timespan</i>)</th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<th>values_timespan</th>
+										<th>[string]</th>
+										<th>After this time all provided values are published</th>
+										<td>
+											<label>
+												<input>
+											</label>
+										</td>
+									</tr>
+								</table>
+								<div class="dropdown">
+									<button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">XOR other Policy
+									<span class="caret"></span></button>
+									<ul class="dropdown-menu">
+									  <li><a href="#">Policy 1</a></li>
+									  <li><a href="#">Policy 2</a></li>
+									  <li><a href="#">Policy 3</a></li>
+									</ul>
+									<button type="button" class="btn btn-primary">Add Policy</button>
+								</div>
+								<br>
+								<p><i>Example:</i></p>
+								<ul style="list-style-type:none">
+									<li><i>name: small package</i></li>
+									<li><i>cost: 0.99</i></li>
+									<li><i>cost_timespan: month</i></li>
+									<li><i>currency: euro</i></li>
+									<li><i>values: 24</i></li>
+									<li><i>values_timespan: day</i></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-1"></div>
+			</div>
+		</div>
+	</div>
+	<br>
+	<br>
+	<style type="text/css">
+		.borderless {
+			border: 0 !important
+		}
+
+		.btn {
+			min-width: 75px
+		}
+
+		.rowborder {
+			background-color: #EEE;
+			height: 50px;
+			margin-top: 30px;
+			margin-bottom: 20px;
+		}
+
+		.links-box {
+			border-radius: 25px;
+			padding: 20px;
+			margin-top: 20%;
+		}
+
+		.dropdown-input {
+			padding: 2px;
+			height: 26px;
+		}
+
+		/* Style the tab */
+
+		.tab {
+			overflow: hidden;
+			border: 1px solid #ccc;
+			background-color: #f1f1f1;
+		}
+
+		/* Style the buttons inside the tab */
+
+		.tab button {
+			background-color: inherit;
+			float: left;
+			border: none;
+			outline: none;
+			cursor: pointer;
+			padding: 8px 10px;
+			transition: 0.3s;
+			font-size: 14px;
+			font-weight: bold
+		}
+
+		/* Change background color of buttons on hover */
+
+		.tab button:hover {
+			background-color: #ddd;
+		}
+
+		/* Create an active/current tablink class */
+
+		.tab button.active {
+			background-color: #ccc;
+		}
+
+		/* Style the tab content */
+
+		.tabcontent {
+			display: block;
+			padding: 6px 12px;
+			border: 1px solid #ccc;
+			border-top: none;
+		}
+	</style>
 
 </body>
+
 </html>

@@ -3,56 +3,17 @@
     "policy_assertion": {
       "type": "object",
       "properties": {
-        "name": {
+        "policy_type": {
           "type": "string"
         },
-        "value": {
-          "properties": {
-            "value": {
-              "type": [
-                "string",
-                "boolean",
-                "number",
-                "integer"
-              ]
-            },
-            "datatype": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "value", "datatype"
-          ]
-        },
-        "unit": {
-          "type": [
-            "string"
-          ]
-        },
-        "assertions": {
-          "$ref": "#/definitions/list_assertions"
+        "name": {
+          "type": "string"
         }
       },
       "required": [
-          "name"
+        "policy_type",
+        "name"
       ]
-    },
-    "list_assertions": {
-      "properties": {
-        "item_dependency": {
-          "type": "string",
-          "enum": ["xor", "and"]
-        },
-        "child_assertions":{
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/policy_assertion"
-          },
-          "required": [
-            "item_dependency", "child_assertions"
-          ]
-        }
-      }
     }
   },
   "type": "object",
@@ -102,38 +63,29 @@
       "type": "object",
       "properties": {
         "topic": {
-          "type": "object",
-          "properties": {
-            "assertions": {
-              "$ref": "#/definitions/list_assertions"
-            }
-          },
-          "required": [
-            "assertions"
-          ]
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/policy_assertion"
+          }
         },
         "message": {
-          "type": "object",
-          "properties": {
-            "assertions": {
-              "$ref": "#/definitions/list_assertions"
-            }
-          },
-          "required": [
-            "assertions"
-          ]
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/policy_assertion"
+          }
         }
       }
     }
   },
   "required": [
-      "data_type",
-      "message_format",
-      "message_structure",
-      "middleware_endpoint",
-      "owner",
-      "path",
-      "protocol",
-      "topic_type"
+    "data_type",
+    "location",
+    "message_format",
+    "message_structure",
+    "middleware_endpoint",
+    "owner",
+    "path",
+    "protocol",
+    "topic_type"
   ]
 }
