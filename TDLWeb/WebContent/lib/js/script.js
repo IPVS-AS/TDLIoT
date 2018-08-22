@@ -20,7 +20,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 
 	$http({
 		method: 'GET',
-		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy",
+		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
 		data: { filters: {} },
 		headers: { "Content-Type": "application/json" }
 	}).then(function (response) {
@@ -31,18 +31,132 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				data: { filters: {} },
 				headers: { "Content-Type": "text/plain" }
 			}).then(function (responsePolicy) {
+				// Get data from policytype file of github
 				var policyData = responsePolicy.data;
-				var tabContent = document.createElement("div")
-				var policyName = policyData.name.charAt(0).toUpperCase() + policyData.name.substr(1);
+				var policyType = policyData.policy_type.charAt(0).toUpperCase() + policyData.policy_type.substr(1);
 				var policyDesc = policyData.description;
-				tabContent.className = "tabcontent";
-				tabContent.innerHTML = policyName + "\n" + policyDesc;
+				var policyInput = policyData.input;
+				var policyExample = policyData.example;
+
+				// Create TabContent 
+				var tabContentDiv = document.createElement("div");
+				tabContentDiv.id = policyType;
+				tabContentDiv.className = "tabcontent";
+				// TabContent Header
+				var tabContentHeader = document.createElement("h3");
+				tabContentHeader.innerHTML = policyType;
+				tabContentDiv.appendChild(tabContentHeader);
+				// TabContent Description
+				var tabContentDescription = document.createElement("p");
+				tabContentDescription.innerHTML = policyDesc;
+				tabContentDiv.appendChild(tabContentDescription);
+				// TabContent Inputvalues Table
+				var tabContentTable = document.createElement("table");
+				tabContentTable.className = "table table-bordered";
+				// TabContent Inputvalues Table Body
+				var tabContentTableBody = document.createElement("tbody");
+				// TabContent Inputvalues Table Header Row
+				var tabContentTableHeaderRow = document.createElement("tr");
+				tabContentTableHeaderRow.style.backgroundColor = "#EEE";
+				// TabContent Inputvalues Table Header Elements
+				var tabContentTableHeaderElementName = document.createElement("th");
+				var tabContentTableHeaderElementDatatype = document.createElement("th");
+				var tabContentTableHeaderElementDescription = document.createElement("th");
+				var tabContentTableHeaderElementValues = document.createElement("th");
+				tabContentTableHeaderElementName.innerHTML = "Name";
+				tabContentTableHeaderElementDatatype.innerHTML = "Datatype";
+				tabContentTableHeaderElementDescription.innerHTML = "Description";
+				tabContentTableHeaderElementValues.innerHTML = "Your Values";
+				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementName);
+				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDatatype);
+				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDescription);
+				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementValues);
+				tabContentTableBody.appendChild(tabContentTableHeaderRow);
+				// TabContent Inputvalues Table Policy Input Rows
+				for (var index in policyInput) {
+					var inputObject = policyInput[index];
+					var tabContentTableNewRow = document.createElement("tr");
+					var tabContentTableElementName = document.createElement("th");
+					var tabContentTableElementDatatype = document.createElement("th");
+					var tabContentTableElementDescription = document.createElement("th");
+					var tabContentTableElementValues = document.createElement("td");
+					tabContentTableElementName.innerHTML = inputObject.value;
+					tabContentTableElementDatatype.innerHTML = "[" + inputObject.datatype + "]";
+					tabContentTableElementDescription.innerHTML = inputObject.description;
+
+					// Create Input Field
+					switch (inputObject.datatype.toLowerCase()) {
+						case "string":
+							var inputFieldString = document.createElement("input");
+							inputFieldString.type = inputObject.datatype;
+							tabContentTableElementValues.appendChild(inputFieldString);
+							break;
+						case "number":
+							var inputFieldNumber = document.createElement("input");
+							inputFieldNumber.type = inputObject.datatype;
+							tabContentTableElementValues.appendChild(inputFieldNumber);
+							break;
+						case "int":
+							var inputFieldInt = document.createElement("input");
+							inputFieldInt.type = inputObject.datatype;
+							inputFieldInt.step = 1;
+							tabContentTableElementValues.appendChild(inputFieldInt);
+							break;
+						case "boolean":
+							var inputFieldBoolean = document.createElement("input");
+							inputFieldBoolean.type = "checkbox";
+							tabContentTableElementValues.appendChild(inputFieldBoolean);
+							break;
+					}
+					tabContentTableNewRow.appendChild(tabContentTableElementName);
+					tabContentTableNewRow.appendChild(tabContentTableElementDatatype);
+					tabContentTableNewRow.appendChild(tabContentTableElementDescription);
+					tabContentTableNewRow.appendChild(tabContentTableElementValues);
+					tabContentTableBody.appendChild(tabContentTableNewRow);
+				}
+				tabContentTable.appendChild(tabContentTableBody);
+				tabContentDiv.appendChild(tabContentTable);
+				tabContentDiv.appendChild(document.createElement("p"));
+				// TabContent Add Policy Button
+				var tabContentAddButton = document.createElement("button");
+				tabContentAddButton.className = "btn btn-primary";
+				tabContentAddButton.innerHTML = "Add Policy";
+				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
+				tabContentDiv.appendChild(document.createElement("p"));
+				// TabContent Example Header
+				var tabContentExampleHeader = document.createElement("p");
+				tabContentExampleHeader.innerHTML = "<i>Example:</i>";
+				tabContentDiv.appendChild(tabContentExampleHeader);
+				// TabContent Example List
+				var tabContentExampleList = document.createElement("ul");
+				tabContentExampleList.style = "list-style-type:none";
+				// TabContent Example List Elements
+				for (var key in policyExample) {
+					var tabContentExampleListElement = document.createElement("li");
+					tabContentExampleListElement.innerHTML = "<i>" + key + ": " + policyExample[key] + "</i>";
+					tabContentExampleList.appendChild(tabContentExampleListElement);
+				}
+				tabContentDiv.appendChild(tabContentExampleList);
+
+				// Create TabButton
 				var tabButton = document.createElement("button");
-				tabButton.innerHTML = policyName;
+				tabButton.innerHTML = policyType;
+				tabButton.className = "tablinks";
 				tabButton.addEventListener("click", function () {
-					alert("<h3>" + policyName + "</h3>\n" + policyDesc)
+					var policyType = this.innerHTML
+					var i, tabcontent, tablinks;
+					tabcontent = document.getElementsByClassName("tabcontent");
+					for (i = 0; i < tabcontent.length; i++) {
+						tabcontent[i].style.display = "none";
+					}
+					tablinks = document.getElementsByClassName("tablinks");
+					document.getElementById(policyType).style.display = "block";
 				});
+
+				// Add TabButton
 				document.getElementById("PolicyCatalog").appendChild(tabButton);
+				// Add TabContent
+				document.getElementById("addpolicy").appendChild(tabContentDiv);
 			});
 		}
 	});

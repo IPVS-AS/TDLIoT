@@ -416,196 +416,107 @@
 			<div class="row rowborder"></div>
 			<div class="row">
 				<div class="col-sm-1"></div>
-				<div class="col-sm-10">
-					<div class="row">
-						<div class="col-sm-4">
-							<h1 id="adddescription">Add topic description</h1>
-							Add topic description to catalogue.
-							<table class="table table-bordered">
-								<tr style="background-color: #EEE">
-									<th>Property</th>
-									<th>Value</th>
-								</tr>
-								<tr>
-									<th>data_type</th>
-									<td>
-										<label>
-											<input ng-model="insert.data_type">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>hardware_type</th>
-									<td>
-										<label>
-											<input ng-model="insert.hardware_type">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>topic_type</th>
-									<td>
-										<label>
-											<input ng-model="insert.topic_type">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>message_format</th>
-									<td>
-										<label>
-											<input ng-model="insert.message_format">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>message_structure</th>
-									<td>
-										<label>
-											<input ng-model="insert.message_structure">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>protocol</th>
-									<td>
-										<label>
-											<input ng-model="insert.protocol">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>owner</th>
-									<td>
-										<label>
-											<input ng-model="insert.owner">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>middleware_endpoint</th>
-									<td>
-										<label>
-											<input ng-model="insert.middleware_endpoint">
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th>path</th>
-									<td>
-										<label>
-											<input ng-model="insert.path">
-										</label>
-									</td>
-								</tr>
-							</table>
-							<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
-							<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
+				<div class="col-md-10">
+					<div class="col-xs-6 col-md-4">
+						<h1 id="adddescription">Add topic description</h1>
+						Add topic description to catalogue.
+						<table class="table table-bordered">
+							<tr style="background-color: #EEE">
+								<th>Property</th>
+								<th>Value</th>
+							</tr>
+							<tr>
+								<th>data_type</th>
+								<td>
+									<label>
+										<input ng-model="insert.data_type">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>hardware_type</th>
+								<td>
+									<label>
+										<input ng-model="insert.hardware_type">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>topic_type</th>
+								<td>
+									<label>
+										<input ng-model="insert.topic_type">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>message_format</th>
+								<td>
+									<label>
+										<input ng-model="insert.message_format">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>message_structure</th>
+								<td>
+									<label>
+										<input ng-model="insert.message_structure">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>protocol</th>
+								<td>
+									<label>
+										<input ng-model="insert.protocol">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>owner</th>
+								<td>
+									<label>
+										<input ng-model="insert.owner">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>middleware_endpoint</th>
+								<td>
+									<label>
+										<input ng-model="insert.middleware_endpoint">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th>path</th>
+								<td>
+									<label>
+										<input ng-model="insert.path">
+									</label>
+								</td>
+							</tr>
+						</table>
+						<a type="button" data-toggle="collapse" data-target="#addpolicy" class="btn btn-primary" ng-click="collapseAddPolicy = !collapseAddPolicy"
+						 ng-init="collapseAddPolicy = false">
+							<span ng-show="collapseAddPolicy">Hide Add Policy</span>
+							<span ng-show="!collapseAddPolicy">Add Policy</span>
+						</a>
+						<p></p>
+						<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
+						<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
+						<br/>
+						<div ng-if="idOfNewTopicDescription">
 							<br/>
-							<div ng-if="idOfNewTopicDescription">
-								<br/>
-								<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
-								<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
-							</div>
+							<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
+							<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
 						</div>
-						<div class="col-sm-6">
-							<h1 id="addpolicy">Add Policy</h1>
-							Catalogue
-							<div class="tab" id="PolicyCatalog"></div>
-							<div id="Reliabilty" class="tabcontent">
-								<h3>Reliabilty</h3>
-								<p>Defines the reliability of the topic</p>
-								Inputvalues:
-								<table class="table table-bordered">
-									<tr style="background-color: #EEE">
-										<th>Name</th>
-										<th>Datatype</th>
-										<th>Description</th>
-										<th>Values</th>
-									</tr>
-									<tr>
-										<th>name</th>
-										<th>[string]</th>
-										<th>Unique name to describe the policy</th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-									<tr>
-										<th>cost</th>
-										<th>[number]</th>
-										<th>Real value of the cost</th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-									<tr>
-										<th>cost_timespan</th>
-										<th>[string]</th>
-										<th>Timespan in which <i>cost</i> are calculated</th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-									<tr>
-										<th>currency</th>
-										<th>[string]</th>
-										<th>Currency of <i>cost</i></th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-									<tr>
-										<th>values</th>
-										<th>[int]</th>
-										<th>Provided values within a timespan (<i>values_timespan</i>)</th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-									<tr>
-										<th>values_timespan</th>
-										<th>[string]</th>
-										<th>After this time all provided values are published</th>
-										<td>
-											<label>
-												<input>
-											</label>
-										</td>
-									</tr>
-								</table>
-								<div class="dropdown">
-									<button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">XOR other Policy
-									<span class="caret"></span></button>
-									<ul class="dropdown-menu">
-									  <li><a href="#">Policy 1</a></li>
-									  <li><a href="#">Policy 2</a></li>
-									  <li><a href="#">Policy 3</a></li>
-									</ul>
-									<button type="button" class="btn btn-primary">Add Policy</button>
-								</div>
-								<br>
-								<p><i>Example:</i></p>
-								<ul style="list-style-type:none">
-									<li><i>name: small package</i></li>
-									<li><i>cost: 0.99</i></li>
-									<li><i>cost_timespan: month</i></li>
-									<li><i>currency: euro</i></li>
-									<li><i>values: 24</i></li>
-									<li><i>values_timespan: day</i></li>
-								</ul>
-							</div>
-						</div>
+					</div>
+					<div class="col-xs-12 col-md-8 collapse" id="addpolicy">
+						<h1 id="addpolicy">Add Policy</h1>
+						Catalogue
+						<div class="tab" id="PolicyCatalog"></div>
 					</div>
 				</div>
 				<div class="col-sm-1"></div>
@@ -678,7 +589,7 @@
 		/* Style the tab content */
 
 		.tabcontent {
-			display: block;
+			display: none;
 			padding: 6px 12px;
 			border: 1px solid #ccc;
 			border-top: none;
