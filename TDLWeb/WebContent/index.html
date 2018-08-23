@@ -415,111 +415,122 @@
 			</div>
 			<div class="row rowborder"></div>
 			<div class="row">
-				<div class="col-sm-1"></div>
-				<div class="col-md-10">
-					<div class="col-xs-6 col-md-4">
-						<h1 id="adddescription">Add topic description</h1>
-						Add topic description to catalogue.
-						<table class="table table-bordered">
-							<tr style="background-color: #EEE">
-								<th>Property</th>
-								<th>Value</th>
-							</tr>
-							<tr>
-								<th>data_type</th>
-								<td>
-									<label>
-										<input ng-model="insert.data_type">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>hardware_type</th>
-								<td>
-									<label>
-										<input ng-model="insert.hardware_type">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>topic_type</th>
-								<td>
-									<label>
-										<input ng-model="insert.topic_type">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>message_format</th>
-								<td>
-									<label>
-										<input ng-model="insert.message_format">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>message_structure</th>
-								<td>
-									<label>
-										<input ng-model="insert.message_structure">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>protocol</th>
-								<td>
-									<label>
-										<input ng-model="insert.protocol">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>owner</th>
-								<td>
-									<label>
-										<input ng-model="insert.owner">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>middleware_endpoint</th>
-								<td>
-									<label>
-										<input ng-model="insert.middleware_endpoint">
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<th>path</th>
-								<td>
-									<label>
-										<input ng-model="insert.path">
-									</label>
-								</td>
-							</tr>
-						</table>
-						<a type="button" data-toggle="collapse" data-target="#addpolicy" class="btn btn-primary" ng-click="collapseAddPolicy = !collapseAddPolicy"
-						 ng-init="collapseAddPolicy = false">
-							<span ng-show="collapseAddPolicy">Hide Add Policy</span>
-							<span ng-show="!collapseAddPolicy">Add Policy</span>
-						</a>
-						<p></p>
-						<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
-						<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
-						<br/>
-						<div ng-if="idOfNewTopicDescription">
+				<div class="col-sm-4"></div>
+				<div class="col-sm-4">
+					<h1 id="adddescription">Add topic description</h1>
+					Add topic description to catalogue.
+					<table class="table table-bordered">
+						<tr style="background-color: #EEE">
+							<th>Property</th>
+							<th>Value</th>
+						</tr>
+						<tr>
+							<th>data_type</th>
+							<td>
+								<label>
+									<input ng-model="insert.data_type">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>hardware_type</th>
+							<td>
+								<label>
+									<input ng-model="insert.hardware_type">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>topic_type</th>
+							<td>
+								<label>
+									<input ng-model="insert.topic_type">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>message_format</th>
+							<td>
+								<label>
+									<input ng-model="insert.message_format">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>message_structure</th>
+							<td>
+								<label>
+									<input ng-model="insert.message_structure">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>protocol</th>
+							<td>
+								<label>
+									<input ng-model="insert.protocol">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>owner</th>
+							<td>
+								<label>
+									<input ng-model="insert.owner">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>middleware_endpoint</th>
+							<td>
+								<label>
+									<input ng-model="insert.middleware_endpoint">
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th>path</th>
+							<td>
+								<label>
+									<input ng-model="insert.path">
+								</label>
+							</td>
+						</tr>
+					</table>
+					<div class="topic-policies-header"><b>Topic Policies</b></div>
+					<div id="addedPolicies" class="topic-policies">
+							<label class="policy">
+								<b>Accuracy:</b> Accuracy <i>[0.001]</i> &thinsp;
+								<img class="policy-remove-img" src="images/icon-remove.svg"/>
+							</label>
 							<br/>
-							<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
-							<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
-						</div>
+							<label class="policy">
+								<b>Pricing:</b> small package <i>[0.99];[euro];[month]</i> &thinsp;
+								<img class="policy-remove-img" src="images/icon-remove.svg"/>
+							</label>
+							<br/>
 					</div>
-					<div class="col-xs-12 col-md-8 collapse" id="addpolicy">
-						<h1 id="addpolicy">Add Policy</h1>
+					<a type="button" data-toggle="collapse" data-target="#addpolicy" class="btn btn-success" ng-click="collapseAddPolicy = !collapseAddPolicy"
+					 ng-init="collapseAddPolicy = true">
+						<span ng-show="collapseAddPolicy">Add Policy</span>
+						<span ng-show="!collapseAddPolicy">Hide Add Policy</span>
+					</a>
+					<br/>
+					<div class="collapse" id="addpolicy">
+						<h2 id="addpolicy">Add Policy</h2>
 						Catalogue
 						<div class="tab" id="PolicyCatalog"></div>
 					</div>
+					<br/>
+					<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
+					<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
+					<div ng-if="idOfNewTopicDescription">
+						<br/>
+						<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
+						<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
+					</div>
 				</div>
-				<div class="col-sm-1"></div>
+				<div class="col-sm-4"></div>
 			</div>
 		</div>
 	</div>
@@ -550,6 +561,40 @@
 		.dropdown-input {
 			padding: 2px;
 			height: 26px;
+		}
+
+		/* Style the Topic policy box */
+		.topic-policies-header {
+			background-color: #eee;
+			padding: 12px;
+			border: 1px solid #ccc;
+			border-bottom: none;
+		}
+
+		.topic-policies {
+			padding: 12px;
+			border: 1px solid #ccc;
+			margin-bottom: 10px
+		}
+
+		/* Style the Policy */
+
+		.policy {
+			background-color: #eee;
+			padding: 10px;
+			margin-bottom: 10px;
+			border-radius: 5px;
+			border: 1px solid #ccc;
+		}
+
+		.policy-remove-img {
+			padding: 4px;
+			border-radius: 50%;
+			height: 20px;
+		}
+
+		.policy-remove-img:hover {
+			background-color: #ccc;
 		}
 
 		/* Style the tab */

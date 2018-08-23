@@ -119,8 +119,8 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				tabContentDiv.appendChild(document.createElement("p"));
 				// TabContent Add Policy Button
 				var tabContentAddButton = document.createElement("button");
-				tabContentAddButton.className = "btn btn-primary";
-				tabContentAddButton.innerHTML = "Add Policy";
+				tabContentAddButton.className = "btn btn-success";
+				tabContentAddButton.innerHTML = "Add this Policy";
 				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
 				tabContentDiv.appendChild(document.createElement("p"));
 				// TabContent Example Header
