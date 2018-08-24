@@ -160,6 +160,15 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
 					newTopicPolicyRemoveBtn.addEventListener("click", function () {
 						if (confirm("Do you really want to delete this Policy?")) {
+							// Clear Input
+							for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+								var element = document.getElementsByClassName("input " + policyType)[index];
+								if (element.type == "checkbox") {
+									element.checked = false;
+								} else {
+									element.value = "";
+								}
+							}
 							document.getElementById(policy.values.name).nextElementSibling.remove();
 							document.getElementById(policy.values.name).remove();
 							for (var index = $scope.policies.length - 1; index >= 0; index--) {

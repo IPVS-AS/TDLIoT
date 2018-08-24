@@ -497,14 +497,16 @@
 							</td>
 						</tr>
 					</table>
-					<div class="topic-policies-header"><b>Topic Policies</b></div>
+					<div class="topic-policies-header">
+						<b style="float: left">Topic Policies</b>
+						<a type="button" data-toggle="collapse" data-target="#addpolicy" style="float: right" class="btn btn-success" ng-click="collapseAddPolicy = !collapseAddPolicy"
+						 ng-init="collapseAddPolicy = true">
+							<span ng-show="collapseAddPolicy">Add Policy</span>
+							<span ng-show="!collapseAddPolicy">Hide Add Policy</span>
+						</a>
+						<div style="clear: both;"></div>
+					</div>
 					<div id="topicPolicies" class="topic-policies"></div>
-					<a type="button" data-toggle="collapse" data-target="#addpolicy" class="btn btn-success" ng-click="collapseAddPolicy = !collapseAddPolicy"
-					 ng-init="collapseAddPolicy = true">
-						<span ng-show="collapseAddPolicy">Add Policy</span>
-						<span ng-show="!collapseAddPolicy">Hide Add Policy</span>
-					</a>
-					<br/>
 					<div class="collapse" id="addpolicy">
 						<h2 id="addpolicy">Add Policy</h2>
 						Catalogue
@@ -563,7 +565,7 @@
 		.topic-policies {
 			padding: 12px;
 			border: 1px solid #ccc;
-			margin-bottom: 10px
+			margin-bottom: 10px;
 		}
 
 		/* Style the Policy */
