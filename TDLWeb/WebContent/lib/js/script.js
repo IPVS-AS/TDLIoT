@@ -18,6 +18,8 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";
 	var url = serverUrl + "/catalogue";
 
+	$scope.policies = [];
+
 	$http({
 		method: 'GET',
 		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
@@ -85,29 +87,25 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					tabContentTableElementDescription.innerHTML = inputObject.description;
 
 					// Create Input Field
+					var inputField = document.createElement("input");
+					inputField.className = "input " + policyType;
+					inputField.id = inputObject.value;
 					switch (inputObject.datatype.toLowerCase()) {
 						case "string":
-							var inputFieldString = document.createElement("input");
-							inputFieldString.type = inputObject.datatype;
-							tabContentTableElementValues.appendChild(inputFieldString);
+							inputField.type = inputObject.datatype;
 							break;
 						case "number":
-							var inputFieldNumber = document.createElement("input");
-							inputFieldNumber.type = inputObject.datatype;
-							tabContentTableElementValues.appendChild(inputFieldNumber);
+							inputField.type = inputObject.datatype;
 							break;
 						case "int":
-							var inputFieldInt = document.createElement("input");
-							inputFieldInt.type = inputObject.datatype;
-							inputFieldInt.step = 1;
-							tabContentTableElementValues.appendChild(inputFieldInt);
+							inputField.type = inputObject.datatype;
+							inputField.step = 1;
 							break;
 						case "boolean":
-							var inputFieldBoolean = document.createElement("input");
-							inputFieldBoolean.type = "checkbox";
-							tabContentTableElementValues.appendChild(inputFieldBoolean);
+							inputField.type = "checkbox";
 							break;
 					}
+					tabContentTableElementValues.appendChild(inputField);
 					tabContentTableNewRow.appendChild(tabContentTableElementName);
 					tabContentTableNewRow.appendChild(tabContentTableElementDatatype);
 					tabContentTableNewRow.appendChild(tabContentTableElementDescription);
@@ -121,6 +119,61 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				var tabContentAddButton = document.createElement("button");
 				tabContentAddButton.className = "btn btn-success";
 				tabContentAddButton.innerHTML = "Add this Policy";
+				tabContentAddButton.addEventListener("click", function () {
+					// Create Policy Frontend Element
+					var topicPoliciesDiv = document.getElementById("topicPolicies");
+					var newTopicPolicy = document.createElement("label");
+					newTopicPolicy.className = "policy"
+
+					// Create Policy object and add data to Frontend element
+					var policy = {
+						policyType: policyType,
+						policyCategory: policyData.policy_category,
+						values: {},
+					};
+					for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+						var element = document.getElementsByClassName("input " + policyType)[index];
+						// TODO validate input field
+						if (element.type == "checkbox") {
+							policy.values[element.id] = element.checked;
+						} else {
+							policy.values[element.id] = element.value;
+						}
+					}
+					$scope.policies.push(policy);
+
+					newTopicPolicy.id = policy.values.name;
+					newTopicPolicy.innerHTML = "<b>" + policy.policyType + "</b>: " + policy.values.name + " ";
+					for (var property in policy.values) {
+						if (property != "name") {
+							newTopicPolicy.innerHTML += "<i>[" + policy.values[property] + "];</i>";
+						}
+					}
+					newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
+					newTopicPolicy.innerHTML += "</i> &thinsp;";
+
+					// TODO Remove input field values (Make Empty input fields)
+
+					// Create Remove Button
+					var newTopicPolicyRemoveBtn = document.createElement("img");
+					newTopicPolicyRemoveBtn.className = "policy-remove-img";
+					newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
+					newTopicPolicyRemoveBtn.addEventListener("click", function () {
+						if (confirm("Do you really want to delete this Policy?")) {
+							document.getElementById(policy.values.name).nextElementSibling.remove();
+							document.getElementById(policy.values.name).remove();
+							for (var index = $scope.policies.length - 1; index >= 0; index--) {
+								if ($scope.policies[index].values.name == policy.values.name) {
+									$scope.policies.splice(index, 1);
+								}
+							}
+						}
+					});
+					// Add Element to Frontend
+					newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
+					topicPoliciesDiv.appendChild(newTopicPolicy);
+					topicPoliciesDiv.appendChild(document.createElement("br"));
+				});
 				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
 				tabContentDiv.appendChild(document.createElement("p"));
 				// TabContent Example Header
@@ -142,7 +195,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				var tabButton = document.createElement("button");
 				tabButton.innerHTML = policyType;
 				tabButton.className = "tablinks";
-				tabButton.addEventListener("click", function () {
+				tabButton.addEventListener("click", function (evt) {
 					var policyType = this.innerHTML
 					var i, tabcontent, tablinks;
 					tabcontent = document.getElementsByClassName("tabcontent");
@@ -150,7 +203,11 @@ app.controller('tdlCtrl', function ($scope, $http) {
 						tabcontent[i].style.display = "none";
 					}
 					tablinks = document.getElementsByClassName("tablinks");
+					for (i = 0; i < tablinks.length; i++) {
+						tablinks[i].className = tablinks[i].className.replace(" active", "");
+					}
 					document.getElementById(policyType).style.display = "block";
+					evt.currentTarget.className += " active";
 				});
 
 				// Add TabButton
