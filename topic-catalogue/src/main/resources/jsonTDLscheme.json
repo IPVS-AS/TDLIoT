@@ -79,7 +79,6 @@
   },
   "required": [
     "data_type",
-    "location",
     "message_format",
     "message_structure",
     "middleware_endpoint",

@@ -91,19 +91,24 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					inputField.className = "input " + policyType;
 					inputField.id = inputObject.value;
 					switch (inputObject.datatype.toLowerCase()) {
-						case "string":
-							inputField.type = inputObject.datatype;
-							break;
-						case "number":
-							inputField.type = inputObject.datatype;
-							break;
-						case "int":
-							inputField.type = inputObject.datatype;
-							inputField.step = 1;
-							break;
 						case "boolean":
 							inputField.type = "checkbox";
 							break;
+						case "enum":
+							inputField = document.createElement("select");
+							inputField.className = "input " + policyType;
+							inputField.id = inputObject.value;
+							console.log(inputObject.enum);
+							for (var enumIndex in inputObject.enum) {
+								var optionField = document.createElement("option");
+								optionField.value = inputObject.enum[enumIndex];
+								optionField.innerHTML = inputObject.enum[enumIndex];
+								inputField.appendChild(optionField);
+							}
+							break;
+						default:
+							inputField.type = inputObject.datatype;
+
 					}
 					tabContentTableElementValues.appendChild(inputField);
 					tabContentTableNewRow.appendChild(tabContentTableElementName);
@@ -118,7 +123,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				// TabContent Add Policy Button
 				var tabContentAddButton = document.createElement("button");
 				tabContentAddButton.className = "btn btn-success";
-				tabContentAddButton.innerHTML = "Add this Policy";
+				tabContentAddButton.innerHTML = "Add new Policy";
 				tabContentAddButton.addEventListener("click", function () {
 					// Create Policy Frontend Element
 					var topicPoliciesDiv = document.getElementById("topicPolicies");
@@ -328,6 +333,12 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			}
 		}
 
+		// Add Policy to description
+		if ($scope.policies.length > 0) {
+			topicDescription["policy"] = createPolicyForDescription();
+		}
+
+		console.log(topicDescription);
 		if ($.isEmptyObject(topicDescription)) {
 			alert('No values available! Please insert values.');
 			return;
@@ -354,6 +365,31 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
 		});
+	};
+
+	function createPolicyForDescription() {
+		var policyForDescription = {};
+		for (var index in $scope.policies) {
+			var policy = $scope.policies[index];
+			var propertyAlreadyExists = false;
+			for (var property in policyForDescription) {
+				if (property == policy.policyCategory) {
+					propertyAlreadyExists = true;
+				}
+			}
+			if (!propertyAlreadyExists) {
+				policyForDescription[policy.policyCategory] = [];
+			}
+			var tempPolicy = {
+				policy_type: policy.policyType
+			};
+			for (var property in policy.values) {
+				var value = policy.values[property];
+				tempPolicy[property] = value;
+			}
+			policyForDescription[policy.policyCategory].push(tempPolicy);
+		}
+		return policyForDescription;
 	};
 
 	$scope.getDataTypes = function (topicDescriptions) {

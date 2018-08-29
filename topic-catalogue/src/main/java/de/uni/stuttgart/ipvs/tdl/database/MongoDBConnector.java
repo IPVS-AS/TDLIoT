@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.mongodb.BasicDBObject;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -12,6 +13,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
 import de.uni.stuttgart.ipvs.tdl.property.Properties;
+import org.json.JSONObject;
 
 public class MongoDBConnector {
 
@@ -67,22 +69,20 @@ public class MongoDBConnector {
 	/**
 	 * Returns all JSON documents with are matching to the provided filter values.
 	 * 
-	 * @param filters - Searching for this filter values.
+	 * @param filter - Searching for this filter values.
 	 * @return - All
 	 */
-	public List<String> getMatchedTopicDescriptions(final Map<String, String> filters) {
+	public List<String> getMatchedTopicDescriptions(final JSONObject filter) {
 
-		if(filters == null) {
+		if(filter == null) {
 			throw new IllegalArgumentException("Filter has to be initialized!");
 		}
-		
-		Document filterDocument = new Document();
-		filterDocument.putAll(filters);
 
-		
+		BasicDBObject queryFilter = BasicDBObject.parse(filter.toString());
+
 		List<String> results = new LinkedList<String>();
 		
-		MongoCursor<Document> cursor = getTable().find(filterDocument).iterator();
+		MongoCursor<Document> cursor = getTable().find(queryFilter).iterator();
 	
 		try {
 

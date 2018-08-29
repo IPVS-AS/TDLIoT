@@ -152,7 +152,6 @@ public class TDLRestController {
     @RequestMapping(method = POST, value = "/search", produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity searchTopics(@RequestBody String filters) {
-        HashMap<String, String> filterMap = new HashMap<String, String>();
         JSONObject filterJson;
         try {
             filterJson = new JSONObject(filters);
@@ -163,29 +162,12 @@ public class TDLRestController {
             }
             Iterator<String> keysIterator = filterJson.keys();
 
-            while (keysIterator.hasNext()) {
-                String key = (String) keysIterator.next();
-
-                // Check if there is a nested JSONObject
-                if (filterJson.optJSONObject(key) != null) {
-                    JSONObject childJson = filterJson.getJSONObject(key);
-                    Iterator<String> childKeysIterator = childJson.keys();
-
-                    // Iterate over child keys and put the keys together
-                    while (childKeysIterator.hasNext()) {
-                        String childKey = (String) childKeysIterator.next();
-                        filterMap.put(key + "." + childKey, childJson.getString(childKey));
-                    }
-                } else {
-                    filterMap.put(key, filterJson.getString(key));
-                }
-            }
-
-            List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterMap);
+            List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterJson);
             JSONArray topicDescriptionJsonArray = new JSONArray();
             for (String topicDescription : descriptionList) {
                 topicDescriptionJsonArray.add(topicDescription);
             }
+
             return new ResponseEntity<>(topicDescriptionJsonArray, HttpStatus.OK);
         } catch (JSONException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
