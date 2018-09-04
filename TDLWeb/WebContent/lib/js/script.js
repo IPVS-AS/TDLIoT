@@ -138,11 +138,19 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					};
 					for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
 						var element = document.getElementsByClassName("input " + policyType)[index];
-						// TODO validate input field
-						if (element.type == "checkbox") {
-							policy.values[element.id] = element.checked;
-						} else {
-							policy.values[element.id] = element.value;
+						// TODO validate input field?
+						switch (element.type) {
+							case "checkbox":
+								policy.values[element.id] = element.checked;
+								break;
+							case "int":
+								policy.values[element.id] = parseInt(element.value);
+								break;
+							case "number":
+								policy.values[element.id] = parseFloat(element.value);
+								break;
+							default:
+								policy.values[element.id] = element.value;
 						}
 					}
 					$scope.policies.push(policy);
@@ -371,13 +379,13 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		var policyForDescription = {};
 		for (var index in $scope.policies) {
 			var policy = $scope.policies[index];
-			var propertyAlreadyExists = false;
-			for (var property in policyForDescription) {
-				if (property == policy.policyCategory) {
-					propertyAlreadyExists = true;
+			var categoryAlreadyExists = false;
+			for (var category in policyForDescription) {
+				if (category == policy.policyCategory) {
+					categoryAlreadyExists = true;
 				}
 			}
-			if (!propertyAlreadyExists) {
+			if (!categoryAlreadyExists) {
 				policyForDescription[policy.policyCategory] = [];
 			}
 			var tempPolicy = {
