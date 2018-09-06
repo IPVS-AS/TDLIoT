@@ -81,15 +81,15 @@ public class MongoDBConnector {
 		BasicDBObject queryFilter = BasicDBObject.parse(filter.toString());
 
 		List<String> results = new LinkedList<String>();
-		
+
 		MongoCursor<Document> cursor = getTable().find(queryFilter).iterator();
-	
+
 		try {
 
 		    while (cursor.hasNext()) {
 		    	results.add(cursor.next().toJson());
 		    }
-		    
+
 		} finally {
 			cursor.close();
 		}

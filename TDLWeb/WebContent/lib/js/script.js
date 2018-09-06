@@ -23,14 +23,12 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	$http({
 		method: 'GET',
 		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
-		data: { filters: {} },
 		headers: { "Content-Type": "application/json" }
 	}).then(function (response) {
 		for (var i in response.data) {
 			$http({
 				method: 'GET',
 				url: response.data[i].download_url,
-				data: { filters: {} },
 				headers: { "Content-Type": "text/plain" }
 			}).then(function (responsePolicy) {
 				// Get data from policytype file of github
@@ -98,7 +96,6 @@ app.controller('tdlCtrl', function ($scope, $http) {
 							inputField = document.createElement("select");
 							inputField.className = "input " + policyType;
 							inputField.id = inputObject.value;
-							console.log(inputObject.enum);
 							for (var enumIndex in inputObject.enum) {
 								var optionField = document.createElement("option");
 								optionField.value = inputObject.enum[enumIndex];
@@ -243,9 +240,10 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	$http({
 		method: 'POST',
 		url: url + "/search",
-		data: { filters: {} },
+		data: {},
 		headers: { "Content-Type": "application/json" }
 	}).then(function (response) {
+		console.log(response);
 		$scope.status = response.status;
 		$scope.topicDescription = [];
 
@@ -257,6 +255,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		$scope.backUpTopicDescription = JSON.parse(JSON.stringify($scope.topicDescription));
 
 	}, function (response) {
+		console.log(response);
 		$scope.data = response.data || 'Request failed';
 		$scope.status = response.status;
 	});
@@ -346,7 +345,6 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			topicDescription["policy"] = createPolicyForDescription();
 		}
 
-		console.log(topicDescription);
 		if ($.isEmptyObject(topicDescription)) {
 			alert('No values available! Please insert values.');
 			return;

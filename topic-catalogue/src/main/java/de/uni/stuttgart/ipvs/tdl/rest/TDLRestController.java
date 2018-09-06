@@ -147,15 +147,28 @@ public class TDLRestController {
     @ResponseBody
     public ResponseEntity searchTopics(@RequestBody String filters) {
         JSONObject filterJson;
+        JSONObject modifiedFilterJson = new JSONObject();
         try {
             filterJson = new JSONObject(filters);
-            if (filterJson.has("filters")) {
-                filterJson = filterJson.getJSONObject("filters");
-            } else {
-                return new ResponseEntity<HttpStatus>(HttpStatus.BAD_REQUEST);
-            }
+            for (String key : filterJson.keySet()) {
+                JSONObject originJsonObject = new JSONObject();
+                JSONObject topicJsonObject = new JSONObject();
+                JSONObject messageJsonObject = new JSONObject();
 
-            List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(filterJson);
+                originJsonObject.put(key, filterJson.get(key));
+                topicJsonObject.put("policy.topic." + key, filterJson.get(key));
+                messageJsonObject.put("policy.message." + key, filterJson.get(key));
+
+                JSONObject orQueryJson = new JSONObject();
+                orQueryJson.put("$or", new org.json.JSONArray());
+                orQueryJson.getJSONArray("$or").put(originJsonObject);
+                orQueryJson.getJSONArray("$or").put(topicJsonObject);
+                orQueryJson.getJSONArray("$or").put(messageJsonObject);
+
+                modifiedFilterJson.put("$and", new org.json.JSONArray());
+                modifiedFilterJson.getJSONArray("$and").put(orQueryJson);
+            }
+            List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(modifiedFilterJson);
             JSONArray topicDescriptionJsonArray = new JSONArray();
             topicDescriptionJsonArray.addAll(descriptionList);
 
