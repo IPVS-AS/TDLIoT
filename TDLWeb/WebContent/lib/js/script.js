@@ -10,9 +10,25 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		"protocol",
 		"owner",
 		"middleware_endpoint",
-		"path"
+		"path",
+		"policy"
 	]
 
+	$scope.searchText = {
+		"_id": {
+			"$oid": ""
+		},
+		"hardware_type": "",
+		"topic_type": "",
+		"message_format": "",
+		"message_structure": "",
+		"protocol": "",
+		"owner": "",
+		"middleware_endpoint": "",
+		"path": "",
+		"policy": ""
+
+	}
 	var serverUrl = "http://localhost:8080";
 
 	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";
@@ -20,6 +36,12 @@ app.controller('tdlCtrl', function ($scope, $http) {
 
 	$scope.policies = [];
 
+	$scope.operator = "equal";
+	$scope.filters = [];
+
+	getTopicDescriptionsByFilter();
+
+	// Get policies from github repo
 	$http({
 		method: 'GET',
 		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
@@ -162,7 +184,10 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
 					newTopicPolicy.innerHTML += "</i> &thinsp;";
 
-					// TODO Remove input field values (Make Empty input fields)
+					for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+						var element = document.getElementsByClassName("input " + policyType)[index];
+						element.value = "";
+					}
 
 					// Create Remove Button
 					var newTopicPolicyRemoveBtn = document.createElement("img");
@@ -192,6 +217,8 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
 					topicPoliciesDiv.appendChild(newTopicPolicy);
 					topicPoliciesDiv.appendChild(document.createElement("br"));
+
+
 				});
 				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
 				tabContentDiv.appendChild(document.createElement("p"));
@@ -237,29 +264,14 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		}
 	});
 
-	$http({
-		method: 'POST',
-		url: url + "/search",
-		data: {},
-		headers: { "Content-Type": "application/json" }
-	}).then(function (response) {
-		console.log(response);
-		$scope.status = response.status;
-		$scope.topicDescription = [];
-
-		for (var i in response.data) {
-			var elementData = response.data[i];
-			$scope.topicDescription.push(angular.fromJson(elementData));
+	$scope.searchInsidePolicy = function (id, searchText) {
+		for (var i in $scope.topicDescription) {
+			if ($scope.topicDescription[i]._id.$oid == id) {
+				topicDescription[i].policy.includes(searchText);
+				break;
+			}
 		}
-
-		$scope.backUpTopicDescription = JSON.parse(JSON.stringify($scope.topicDescription));
-
-	}, function (response) {
-		console.log(response);
-		$scope.data = response.data || 'Request failed';
-		$scope.status = response.status;
-	});
-
+	}
 	$scope.removeTopicDescription = function (topic) {
 		$scope.response = null;
 
@@ -275,7 +287,16 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					break;
 				}
 			}
+			successNotifiction("Successfully removed topic description");
 		}, function (response) {
+			switch (response.status) {
+				case -1:
+					dangerNotifiction("Server is not available!");
+					break;
+				default:
+					dangerNotifiction(response.data);
+					break;
+			}
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
 		});
@@ -316,8 +337,17 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		).then(function (response) {
 			console.log("Update success (200)?");
 			$scope.status = response.status;
+			successNotifiction("Successfully updated topic description");
 		}, function (response) {
 			console.log("Update failed (400)?");
+			switch (response.status) {
+				case -1:
+					dangerNotifiction("Server is not available!");
+					break;
+				default:
+					dangerNotifiction(response.data);
+					break;
+			}
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
 		});
@@ -326,6 +356,11 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	$scope.cancelInsertTopicDescription = function () {
 		for (var property in $scope.insert) {
 			$scope.insert[property] = "";
+		}
+		$scope.policies = [];
+		var policyDiv = document.getElementById("topicPolicies");
+		while (policyDiv.firstChild) {
+			policyDiv.removeChild(policyDiv.firstChild);
 		}
 	};
 
@@ -346,7 +381,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		}
 
 		if ($.isEmptyObject(topicDescription)) {
-			alert('No values available! Please insert values.');
+			dangerNotifiction("No values available! Please insert values.");
 			return;
 		}
 
@@ -367,7 +402,16 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			topicDescription["_id"]["$oid"] = $scope.idOfNewTopicDescription;
 			$scope.topicDescription.push(topicDescription);
 			$scope.backUpTopicDescription.push(topicDescription);
+			successNotifiction("Successfully added topic description");
 		}, function (response) {
+			switch (response.status) {
+				case -1:
+					dangerNotifiction("Server is not available!");
+					break;
+				default:
+					dangerNotifiction(response.data);
+					break;
+			}
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
 		});
@@ -435,5 +479,240 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		});
 
 		return result;
+	}
+
+	$scope.addFilter = function () {
+		var attributeName = document.getElementById("filterAttributeName").value.trim();
+		var firstFilterValue;
+		var secondfilterValue;
+		var filterUIinnerHTML;
+		var operator;
+		switch ($scope.operator) {
+			case "equal":
+				operator = "$eq";
+				if (isNaN(parseFloat(document.getElementById("firstFilterValue").value.trim()))) {
+					firstFilterValue = document.getElementById("firstFilterValue").value.trim();
+				} else {
+					firstFilterValue = parseFloat(document.getElementById("firstFilterValue").value.trim());
+
+				}
+				filterUIinnerHTML = attributeName + " = " + firstFilterValue;
+				break;
+			case "greater":
+				operator = "$gt";
+				firstFilterValue = parseFloat(document.getElementById("firstFilterValue").value.trim());
+				filterUIinnerHTML = attributeName + " &gt; " + firstFilterValue;
+				break;
+			case "smaller":
+				operator = "$lt";
+				firstFilterValue = parseFloat(document.getElementById("firstFilterValue").value.trim());
+				filterUIinnerHTML = attributeName + " &lt; " + firstFilterValue;
+				break;
+			case "range":
+				// custom operator because mongoDB has not any single operator for range
+				operator = "$ra";
+				firstFilterValue = parseFloat(document.getElementById("firstFilterValue").value.trim());
+				secondfilterValue = parseFloat(document.getElementById("secondFilterValue").value.trim());
+				filterUIinnerHTML = firstFilterValue + " &gt; " + attributeName + " &lt; " + secondfilterValue;
+				break;
+			case "unequal":
+				operator = "$ne";
+				if (isNaN(parseFloat(document.getElementById("firstFilterValue").value.trim()))) {
+					firstFilterValue = document.getElementById("firstFilterValue").value.trim();
+				} else {
+					firstFilterValue = parseFloat(document.getElementById("firstFilterValue").value.trim());
+
+				}
+				filterUIinnerHTML = attributeName + " != " + firstFilterValue;
+				break;
+		}
+		var singleFilterObject = {
+			attribute: attributeName,
+			operator: operator,
+			firstFilter: firstFilterValue,
+			secondFilter: secondfilterValue
+		};
+		$scope.filters.push(singleFilterObject);
+		var filterExpressionIndex = $scope.filters.length - 1;
+		// Create Filter Frontend Element
+		var filterDiv = document.getElementById("filtersDiv");
+		var newFilterElement = document.createElement("label");
+		newFilterElement.className = "single-filter"
+		newFilterElement.innerHTML = filterUIinnerHTML;
+
+		// Create Remove Button
+		var removeBtn = document.createElement("img");
+		removeBtn.className = "filter-remove-img";
+		removeBtn.src = "images/icon-remove.svg";
+		removeBtn.addEventListener("click", function () {
+			if (confirm("Do you really want to delete this Filter?")) {
+				filterDiv.removeChild(newFilterElement)
+				$scope.filters.splice(filterExpressionIndex, 1);
+				getTopicDescriptionsByFilter();
+			}
+		});
+		newFilterElement.appendChild(removeBtn);
+		filterDiv.appendChild(newFilterElement);
+
+		// Clear input elements
+		$scope.operator = "equal";
+		document.getElementById("filterAttributeName").value = "";
+		document.getElementById("firstFilterValue").type = "string";
+		document.getElementById("firstFilterValue").value = "";
+		document.getElementById("secondFilterValue").value = "";
+		document.getElementById("secondFilterValue").style.display = "none"
+		getTopicDescriptionsByFilter();
+	}
+
+	$scope.clearFilter = function () {
+		var filterDiv = document.getElementById("filtersDiv");
+		while (filterDiv.firstChild) {
+			filterDiv.removeChild(filterDiv.firstChild);
+		}
+		$scope.filters = [];
+		getTopicDescriptionsByFilter();
+	}
+
+	function getTopicDescriptionsByFilter() {
+		var filter = {};
+		for (var i = 0; i < $scope.filters.length; i++) {
+			var currentFilter = $scope.filters[i];
+			if (!filter.hasOwnProperty(currentFilter.attribute)) {
+				filter[currentFilter.attribute] = {};
+			}
+			if (currentFilter.operator == "$ra") {
+				filter[currentFilter.attribute]["$gt"] = currentFilter.firstFilter;
+				filter[currentFilter.attribute]["$lt"] = currentFilter.secondFilter;
+			} else {
+				filter[currentFilter.attribute][currentFilter.operator] = currentFilter.firstFilter;
+			}
+		}
+
+		$http({
+			method: 'POST',
+			url: url + "/search",
+			data: filter,
+			headers: { "Content-Type": "application/json" }
+		}).then(function (response) {
+			$scope.status = response.status;
+			$scope.topicDescription = [];
+
+			for (var i in response.data) {
+				var elementData = response.data[i];
+				$scope.topicDescription.push(angular.fromJson(elementData));
+			}
+
+			$scope.backUpTopicDescription = JSON.parse(JSON.stringify($scope.topicDescription));
+
+			successNotifiction("Successfully recvied filtered topic description");
+		}, function (response) {
+			switch (response.status) {
+				case -1:
+					dangerNotifiction("Server is not available!");
+					break;
+				default:
+					dangerNotifiction(response.data);
+					break;
+			}
+			$scope.data = response.data || 'Request failed';
+			$scope.status = response.status;
+		});
+	}
+
+	$scope.checkFilterOperator = function () {
+		switch ($scope.operator) {
+			case "equal":
+				document.getElementById("firstFilterValue").type = "string";
+				document.getElementById("firstFilterValue").placeholder = "value";
+				document.getElementById("secondFilterValue").style.display = "none";
+				break;
+			case "greater":
+				document.getElementById("firstFilterValue").type = "number";
+				document.getElementById("firstFilterValue").placeholder = "value";
+				document.getElementById("secondFilterValue").style.display = "none";
+				break;
+			case "smaller":
+				document.getElementById("firstFilterValue").type = "number";
+				document.getElementById("firstFilterValue").placeholder = "value";
+				document.getElementById("secondFilterValue").style.display = "none";
+				break;
+			case "range":
+				document.getElementById("firstFilterValue").type = "number";
+				document.getElementById("firstFilterValue").placeholder = "first value";
+				document.getElementById("secondFilterValue").style.display = "block";
+				break;
+			case "unequal":
+				document.getElementById("firstFilterValue").type = "string";
+				document.getElementById("firstFilterValue").placeholder = "value";
+				document.getElementById("secondFilterValue").style.display = "none";
+				break;
+		}
+	}
+
+	$scope.setSearchTextPolicy = function () {
+		console.log("setPolicy");
+	}
+
+	$scope.filterTopics = function (topic) {
+		var showTopic = true;
+		for (var key in $scope.searchText) {
+			if ($scope.searchText[key] != undefined) {
+				switch (key) {
+					case "_id":
+						if ($scope.searchText[key]["$oid"] != "") {
+							if (topic[key]["$oid"] != undefined) {
+								if (!topic[key]["$oid"].includes($scope.searchText[key]["$oid"])) {
+									showTopic = false;
+								}
+							} else {
+								showTopic = false;
+							}
+						}
+						break;
+					case "policy":
+						if ($scope.searchText[key] != "") {
+							if (topic[key] != undefined) {
+								if (!JSON.stringify(topic[key]).includes($scope.searchText[key])) {
+									showTopic = false;
+								}
+							} else {
+								showTopic = false;
+							}
+						}
+						break;
+					default:
+						if ($scope.searchText[key] != "") {
+							if (topic[key] != undefined) {
+								if (!topic[key].includes($scope.searchText[key])) {
+									showTopic = false;
+								}
+							} else {
+								showTopic = false;
+							}
+						}
+
+				}
+			}
+		}
+		return showTopic;
+	}
+
+	function dangerNotifiction(message) {
+		$.notify({
+			message: message
+		}, {
+				type: "danger",
+				newest_on_top: true,
+				delay: 0
+			});
+	}
+
+	function successNotifiction(message) {
+		$.notify({
+			message: message
+		}, {
+				type: "success",
+				newest_on_top: true,
+			});
 	}
 });

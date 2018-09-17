@@ -7,6 +7,7 @@
 
 	<script src="lib/js/jquery-3.2.1.min.js"></script>
 	<script src="lib/js/bootstrap.min.js"></script>
+	<script src="lib/js/bootstrap-notify.min.js"></script>
 	<script src="lib/js/angular.min.js"></script>
 	<script src="lib/js/script.js"></script>
 	<title>Topic Description Catalogue</title>
@@ -43,6 +44,30 @@
 				<div class="col-sm-10">
 					<h1 id="descriptions">Topic descriptions</h1>
 					<p>All available topic descriptions which are matching to the provided filter values.</p>
+					<h4>Filter
+						<button type="button" class="btn btn-info" ng-click="clearFilter()">Clear Filters</button>
+					</h4>
+					<label class="filter-input-values">
+						<label>
+							<input id="filterAttributeName" placeholder="attribute name" />
+						</label>
+						<select ng-model="operator" ng-change="checkFilterOperator()" ng-init="equal">
+							<option value="equal">=</option>
+							<option value="greater">&gt;</option>
+							<option value="smaller">&lt;</option>
+							<option value="range">&gt;&lt;</option>
+							<option value="unequal">!=</option>
+						</select>
+						<label>
+							<input id="firstFilterValue" placeholder="value" />
+						</label>
+						<label>
+							<input id="secondFilterValue" type="number" placeholder="second value" style="display: none" />
+						</label>
+						<img class="filter-add-img" src="images/icon-add.svg" ng-click="addFilter()">
+					</label>
+					<br />
+					<div id="filtersDiv" style="margin-bottom: 10px"></div>
 					<table class="table table-bordered">
 						<tr style="background-color: #EEE">
 							<th ng-show="showId">
@@ -55,7 +80,7 @@
 							<th ng-show="showDataType">
 								data_type
 								</br>
-								<select ng-model="searchText.data_type" class="dropdown-input" ng-change="searchText.data_type==''?searchText.data_type=undefined:1">
+								<select ng-model="searchText.data_type" class="dropdown-input">
 									<option value>All</option>
 									<option ng-repeat="v in getDataTypes(topicDescription)" value="{{v}}">
 										{{v}}
@@ -66,20 +91,20 @@
 								hardware_type
 								</br>
 								<label>
-									<input ng-model="searchText.hardware_type" ng-change="searchText.hardware_type == ''?searchText.hardware_type = undefined:1">
+									<input ng-model="searchText.hardware_type">
 								</label>
 							</th>
 							<th ng-show="showTopicType">
 								topic_type
 								</br>
 								<label>
-									<input ng-model="searchText.topic_type" ng-change="searchText.topic_type == ''?searchText.topic_type = undefined:1">
+									<input ng-model="searchText.topic_type">
 								</label>
 							</th>
 							<th ng-show="showMessageFormat">
 								message_format
 								</br>
-								<select ng-model="searchText.message_format" class="dropdown-input" ng-change="searchText.message_format == ''?searchText.message_format = undefined:1">
+								<select ng-model="searchText.message_format" class="dropdown-input">
 									<option value="">All</option>
 									<option ng-repeat="v in getMessageFormat(topicDescription)" value="{{v}}">
 										{{v}}
@@ -90,13 +115,13 @@
 								message_structure
 								</br>
 								<label>
-									<input ng-model="searchText.message_structure" ng-change="searchText.message_structure == ''?searchText.message_structure = undefined:1">
+									<input ng-model="searchText.message_structure">
 								</label>
 							</th>
 							<th ng-show="showProtocol">
 								protocol
 								</br>
-								<select ng-model="searchText.protocol" class="dropdown-input" ng-change="searchText.protocol == ''?searchText.protocol = undefined:1">
+								<select ng-model="searchText.protocol" class="dropdown-input">
 									<option value="">All</option>
 									<option ng-repeat="v in getProtocol(topicDescription)" value="{{v}}">
 										{{v}}
@@ -107,28 +132,35 @@
 								owner
 								</br>
 								<label>
-									<input ng-model="searchText.owner" ng-change="searchText.owner == ''?searchText.owner = undefined:1">
+									<input ng-model="searchText.owner">
 								</label>
 							</th>
 							<th ng-show="showMiddlewareEndpoint">
 								middleware_endpoint
 								</br>
 								<label>
-									<input ng-model="searchText.middleware_endpoint" ng-change="searchText.middleware_endpoint == ''?searchText.middleware_endpoint = undefined:1">
+									<input ng-model="searchText.middleware_endpoint">
 								</label>
 							</th>
 							<th ng-show="showPath">
 								path
 								</br>
 								<label>
-									<input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1">
+									<input ng-model="searchText.path">
 								</label>
 							</th>
+							<th ng-show="showPolicy">
+									path
+									</br>
+									<label>
+										<input ng-model="searchText.policy">
+									</label>
+								</th>
 							<th colspan="3" style="text-align: center">
 								Events
 							</th>
 						</tr>
-						<tr ng-repeat="topic in topicDescription | filter:searchText">
+						<tr ng-repeat="topic in topicDescription | filter:filterTopics">
 							<td ng-if="showId">{{topic._id.$oid}}
 							</td>
 							<td ng-if="showDataType">
@@ -203,8 +235,26 @@
 									</label>
 								</div>
 							</td>
+							<td ng-if="showPolicy">
+								<div ng-hide="updateMode">
+									<a type="button" data-toggle="collapse" data-target="#complete_{{topic._id.$oid}}" class="btn btn-link"
+									 ng-click="collapsePolicy_td = !collapsePolicy_td" ng-init="collapsePolicy_td = false">
+										<span ng-show="!collapsePolicy_td">Show</span>
+										<span ng-show="collapsePolicy_td">Hide</span>
+									</a>
+									<div id="complete_{{topic._id.$oid}}" class="collapse">
+										<pre>{{topic.policy | json}}</pre>
+									</div>
+								</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.policy">
+									</label>
+								</div>
+							</td>
 							<td class="borderless">
-								<a type="button" data-toggle="collapse" data-target="#complete_{{topic._id.$oid}}" class="btn btn-primary">Show JSON</a>
+								<a type="button" data-toggle="collapse" data-target="#complete_{{topic._id.$oid}}" class="btn btn-primary">Show
+									JSON</a>
 								<div id="complete_{{topic._id.$oid}}" class="collapse">
 									<pre>{{topic | json}}</pre>
 								</div>
@@ -408,6 +458,21 @@
 									</label>
 								</td>
 							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showPolicy" ng-init="showPolicy = false"></input>
+											policy
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.policy" ng-change="searchText.policy == ''?searchText.policy = undefined:1">
+									</label>
+								</td>
+							</tr>
 						</table>
 					</div>
 				</div>
@@ -499,8 +564,8 @@
 					</table>
 					<div class="topic-policies-header">
 						<b style="float: left">Topic Policies</b>
-						<a type="button" data-toggle="collapse" data-target="#addpolicy" style="float: right" class="btn btn-success" ng-click="collapseAddPolicy = !collapseAddPolicy"
-						 ng-init="collapseAddPolicy = true">
+						<a type="button" data-toggle="collapse" data-target="#addpolicy" style="float: right" class="btn btn-success"
+						 ng-click="collapseAddPolicy = !collapseAddPolicy" ng-init="collapseAddPolicy = true">
 							<span ng-show="collapseAddPolicy">Add Policy</span>
 							<span ng-show="!collapseAddPolicy">Hide Add Policy</span>
 						</a>
@@ -512,11 +577,11 @@
 						Catalogue
 						<div class="tab" id="PolicyCatalog"></div>
 					</div>
-					<br/>
+					<br />
 					<button type="button" class="btn btn-primary" ng-click="insertTopicDescription()">Insert</button>
 					<button type="button" class="btn btn-warning" ng-click="cancelInsertTopicDescription()">Cancel</button>
 					<div ng-if="idOfNewTopicDescription">
-						<br/>
+						<br />
 						<pre>{{idOfNewTopicDescription}}</pre> is the new id of the topic description from
 						<span>{{addDate | date:'dd/MM/yyyy HH:mm:ss'}}</span>
 					</div>
@@ -554,6 +619,52 @@
 			height: 26px;
 		}
 
+		/* Style the Filter */
+
+		.single-filter {
+			background-color: #f1f1f1;
+			margin: 2px;
+			padding-right: 10px;
+			padding-left: 10px;
+			padding-top: 5px;
+			padding-bottom: 5px;
+			border-radius: 4px;
+		}
+
+		.filter-remove-img {
+			padding: 4px;
+			border-radius: 50%;
+			margin-left: 5px;
+			height: 16px;
+		}
+
+		.filter-remove-img:hover {
+			background-color: #ccc;
+		}
+
+		.filter-input-values {
+			background-color: #eee;
+			padding: 5px;
+			padding-top: 8px;
+			margin-right: 10px;
+			border: 1px solid #ccc;
+		}
+
+		.filter-add-img {
+			padding: 4px;
+			margin-right: 5px;
+			margin-left: 5px;
+			border-radius: 50%;
+			height: 20px;
+		}
+
+		.filter-add-img:hover {
+			background-color: rgb(33, 189, 150);
+		}
+
+		/* Style the Policy */
+
+
 		/* Style the Topic policy box */
 		.topic-policies-header {
 			background-color: #eee;
@@ -567,8 +678,6 @@
 			border: 1px solid #ccc;
 			margin-bottom: 10px;
 		}
-
-		/* Style the Policy */
 
 		.policy {
 			background-color: #eee;
