@@ -150,12 +150,12 @@
 								</label>
 							</th>
 							<th ng-show="showPolicy">
-									path
-									</br>
-									<label>
-										<input ng-model="searchText.policy">
-									</label>
-								</th>
+								policy
+								</br>
+								<label>
+									<input ng-model="searchText.policy">
+								</label>
+							</th>
 							<th colspan="3" style="text-align: center">
 								Events
 							</th>
@@ -248,7 +248,7 @@
 								</div>
 								<div ng-show="updateMode">
 									<label>
-										<input ng-model="topic.policy">
+										<input id="topic.policy.input_{{topic._id.$oid}}" ng-model="topic.policy">
 									</label>
 								</div>
 							</td>
@@ -260,7 +260,7 @@
 								</div>
 							</td>
 							<td ng-hide="updateMode" class="borderless">
-								<button type="button" class="btn btn-success" ng-click="updateMode=true">Update</button>
+								<button type="button" class="btn btn-success" ng-click="updateMode=true; policyToString(topic)">Update</button>
 							</td>
 							<td ng-show="updateMode" class="borderless">
 								<button type="button" class="btn btn-success" ng-click="updateMode=false; updateTopicDescription(topic)">Save</button>
@@ -399,7 +399,7 @@
 								<td>
 									<div class="form-check">
 										<label class="form-check-label">
-											<input class="form-check-input" type="checkbox" ng-model="showProtocol" ng-init="showProtocol = true"></input>
+											<input class="form-check-input" type="checkbox" ng-model="showProtocol" ng-init="showProtocol = false"></input>
 											protocol
 										</label>
 									</div>
@@ -417,7 +417,7 @@
 								<td>
 									<div class="form-check">
 										<label class="form-check-label">
-											<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = true"></input>
+											<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = false"></input>
 											owner
 										</label>
 									</div>
@@ -462,7 +462,7 @@
 								<td>
 									<div class="form-check">
 										<label class="form-check-label">
-											<input class="form-check-input" type="checkbox" ng-model="showPolicy" ng-init="showPolicy = false"></input>
+											<input class="form-check-input" type="checkbox" ng-model="showPolicy" ng-init="showPolicy = true"></input>
 											policy
 										</label>
 									</div>

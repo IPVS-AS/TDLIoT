@@ -35,7 +35,7 @@ public class TopicDescriptionValidator {
      * @throws IOException         when the scheme could not load from the file
      * @throws ProcessingException when the validation crashes
      */
-    public synchronized ProcessingReport validateTopicDescOnScheme(String topicDescription) throws IOException, ProcessingException {
+    public synchronized ProcessingReport validateTopicOnJsonScheme(String topicDescription) throws IOException, ProcessingException {
         final JsonValidator VALIDATOR = JsonSchemaFactory.byDefault().getValidator();
         JsonNode schemeNode = JsonLoader.fromFile(new File("src/main/resources/jsonTDLscheme.json"));
         JsonNode newTopicNode = JsonLoader.fromString(topicDescription);
@@ -44,32 +44,31 @@ public class TopicDescriptionValidator {
 
     /**
      * @param policiesJSON the policies as JSONObject. ex:
-     *     "policy": {
-     *     "message": [
-     *       {
-     *         "policy_type": "Accuracy",
-     *         "name": "Accuracy",
-     *         "accuracy": 0.0001
-     *       }
-     *     ],
-     *     "topic": [
-     *       {
-     *         "policy_type": "Pricing",
-     *         "name": "small Package",
-     *         "cost": 0.99,
-     *         "currency": "euro",
-     *         "cost_period": "month"
-     *       }
-     *     ]
-     *     }
-     *
+     *                     "policy": {
+     *                     "message": [
+     *                     {
+     *                     "policy_type": "Accuracy",
+     *                     "name": "Accuracy",
+     *                     "accuracy": 0.0001
+     *                     }
+     *                     ],
+     *                     "topic": [
+     *                     {
+     *                     "policy_type": "Pricing",
+     *                     "name": "small Package",
+     *                     "cost": 0.99,
+     *                     "currency": "euro",
+     *                     "cost_period": "month"
+     *                     }
+     *                     ]
+     *                     }
      * @return JSON with format:
      * {
-     *  "success": true or false"
-     *  "msg": [
-     *      success = true -> messages empty. ELSE: (example)
-     *      "pricing: \"Free\" {cost, [free]} is not a number"
-     *  ]
+     * "success": true or false"
+     * "msg": [
+     * success = true -> messages empty. ELSE: (example)
+     * "pricing: \"Free\" {cost, [free]} is not a number"
+     * ]
      * }
      * @throws IOException when the connection to github breaks off or gets disturbed
      */
@@ -94,6 +93,7 @@ public class TopicDescriptionValidator {
         JSONArray policyTypesJSON = new JSONArray(streamResponse.toString());
         connection.disconnect();
 
+        // Validation
         validateCategory(policiesJSON, "topic", policyTypesJSON);
         validateCategory(policiesJSON, "message", policyTypesJSON);
 
@@ -103,8 +103,8 @@ public class TopicDescriptionValidator {
     /**
      * Validates a single category (topic or message)
      *
-     * @param policiesJSON The current policy
-     * @param category The category
+     * @param policiesJSON        The current policy
+     * @param category            The category
      * @param policyTypesRepoJSON The policy types of the repo
      * @throws IOException when the connection to github breaks off or gets disturbed
      */
@@ -146,7 +146,8 @@ public class TopicDescriptionValidator {
 
     /**
      * Validates the policies of one category and checks for duplicated policy types
-     * @param categoryPoliciesJSON  The category of the current policy
+     *
+     * @param categoryPoliciesJSON The category of the current policy
      */
     private void validateDuplicatePolicies(JSONArray categoryPoliciesJSON) {
         String policyTypeKey = "policy_type";
@@ -167,7 +168,7 @@ public class TopicDescriptionValidator {
      * Validates input values of one policy with its definition on the GitHub repo TDLPolicy "https://github.com/lehmansn/TDLPolicy"
      *
      * @param downloadUrlPolicyType URL to download the policy type json file
-     * @param currentPolicyJSON current policy to validate with the right policy type of the GitHub repo
+     * @param currentPolicyJSON     current policy to validate with the right policy type of the GitHub repo
      * @throws IOException when the connection to github breaks off or gets disturbed
      */
     private void validatePolicyInputValues(String downloadUrlPolicyType, String category, JSONObject currentPolicyJSON) throws IOException {
@@ -255,11 +256,10 @@ public class TopicDescriptionValidator {
      * Creates a message for the return json value
      *
      * @param policyType the policy type of the invalid value
-     * @param name the name of the policy of the invalid value
-     * @param valueName the value name of the invalid value
-     * @param value the invalid value
-     * @param datatype the data type of the invalid value
-     *
+     * @param name       the name of the policy of the invalid value
+     * @param valueName  the value name of the invalid value
+     * @param value      the invalid value
+     * @param datatype   the data type of the invalid value
      * @return a String with all information of the invalid value
      */
     private String createInvalidDataTypeMessage(String policyType, String name, String valueName, Object value, String datatype) {

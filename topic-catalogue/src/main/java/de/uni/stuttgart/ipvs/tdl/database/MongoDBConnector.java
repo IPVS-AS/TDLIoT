@@ -127,21 +127,19 @@ public class MongoDBConnector {
 	 * Update the JSON document with the provided id by the provided update parameters.
 	 * 
 	 * @param id - Update JSON document with this id.
-	 * @param updateParameter - Parameter with values for updating.
+	 * @param updateTopic - New Topic which replaces the old topic
 	 */
-	public boolean updateTopicDescription(final String id, final Map<String, String> updateParameter) {
+	public boolean updateTopicDescription(final String id, String updateTopic) {
 		
-		if(updateParameter == null || updateParameter.isEmpty()) {
+		if(updateTopic == null || updateTopic.isEmpty()) {
 			throw new IllegalArgumentException("No update parameter available!");
 		}
-		
+
 		Document objectId = new Document("_id", new ObjectId(id));
-		
-		Document updateParameterDocument = new Document();
-		updateParameterDocument.putAll(updateParameter);
-		Document updateDocument = new Document("$set", updateParameterDocument);
-				
-		return getTable().updateOne(objectId, updateDocument).wasAcknowledged();
+
+		Document updateTopicDocument = Document.parse(updateTopic);
+
+		return getTable().replaceOne(objectId, updateTopicDocument).wasAcknowledged();
 	}
 
 	private MongoCollection<Document> getTable() {

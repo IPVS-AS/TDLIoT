@@ -28,7 +28,7 @@ public class TDLRestController {
     /**
      * Database connector.
      */
-    public MongoDBConnector dbConnector = new MongoDBConnector();
+    private MongoDBConnector dbConnector = new MongoDBConnector();
 
     /**
      * Validator
@@ -51,7 +51,7 @@ public class TDLRestController {
     public ResponseEntity addNewTopic(@RequestBody String topicDescription) {
         StringBuilder badRequestMsg = new StringBuilder();
         try {
-            ProcessingReport proRep = VALIDATOR.validateTopicDescOnScheme(topicDescription);
+            ProcessingReport proRep = VALIDATOR.validateTopicOnJsonScheme(topicDescription);
             if (proRep.isSuccess()) {
                 JSONObject validationJSON = VALIDATOR.validateAllPolicies(new JSONObject(topicDescription).getJSONObject("policy"));
                 if (validationJSON.getBoolean(success)) {
@@ -97,41 +97,41 @@ public class TDLRestController {
      * Updates the attributes of a given topic.
      *
      * @param id            topic description id
-     * @param tdlAttributes attributes, which have to be changed
+     * @param updateTopic new topic which replaces the old one
      * @return status code 200, if successful, 400 and 500 else
      */
     @RequestMapping(method = PUT, value = "/update/{id}")
     @ResponseBody
-    public ResponseEntity<HttpStatus> updateTopic(@PathVariable String id, @RequestBody String tdlAttributes) {
-        Map<String, String> updateParameter = new HashMap<>();
+    public ResponseEntity updateTopic(@PathVariable String id, @RequestBody String updateTopic) {
+        StringBuilder badRequestMsg = new StringBuilder();
         try {
-            ProcessingReport proRep = VALIDATOR.validateTopicDescOnScheme(tdlAttributes);
-
+            ProcessingReport proRep = VALIDATOR.validateTopicOnJsonScheme(updateTopic);
             if (proRep.isSuccess()) {
-                //TODO: validate policy here
-                JSONObject updateParameterJson = new JSONObject(tdlAttributes);
-                Iterator<String> keysIterator = updateParameterJson.keys();
-                // Iterate over all update parameter
-                while (keysIterator.hasNext()) {
-                    String key = keysIterator.next();
-                    updateParameter.put(key, updateParameterJson.getString(key));
-                }
-                if (dbConnector.updateTopicDescription(id, updateParameter)) {
-                    return new ResponseEntity<>(HttpStatus.ACCEPTED);
+                JSONObject validationJSON = VALIDATOR.validateAllPolicies(new JSONObject(updateTopic).getJSONObject("policy"));
+                if (validationJSON.getBoolean(success)) {
+                    if (dbConnector.updateTopicDescription(id, updateTopic)) {
+                        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+                    } else {
+                        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
                 } else {
-                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    for (int i = 0; i < validationJSON.getJSONArray(msg).length(); i++) {
+                        badRequestMsg.append(validationJSON.getJSONArray(msg).getString(i)).append("\n");
+                    }
                 }
             } else {
                 List messages = Lists.newArrayList(proRep);
                 for (Object message : messages) {
-                    System.out.println(message.toString());
+                    badRequestMsg.append(message.toString());
                 }
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-        } catch (JSONException | IOException | ProcessingException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (IOException | ProcessingException e) {
+            e.printStackTrace();
+            badRequestMsg.append(e.getMessage());
         }
-
+        return ResponseEntity
+                .badRequest()
+                .body(badRequestMsg.toString());
     }
 
     /**
@@ -146,7 +146,6 @@ public class TDLRestController {
     @RequestMapping(method = POST, value = "/search", produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity searchTopics(@RequestBody String filters) {
-        System.out.println("Filter: " + filters);
         JSONObject filterJson;
         JSONObject modifiedFilterJson = new JSONObject();
         try {
@@ -177,7 +176,6 @@ public class TDLRestController {
                     modifiedFilterJson.getJSONArray("$and").put(orQueryJson);
                 }
             }
-            System.out.println("MF: " + modifiedFilterJson);
             List<String> descriptionList = dbConnector.getMatchedTopicDescriptions(modifiedFilterJson);
             JSONArray topicDescriptionJsonArray = new JSONArray();
             topicDescriptionJsonArray.addAll(descriptionList);

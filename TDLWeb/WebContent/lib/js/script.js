@@ -144,82 +144,93 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				tabContentAddButton.className = "btn btn-success";
 				tabContentAddButton.innerHTML = "Add new Policy";
 				tabContentAddButton.addEventListener("click", function () {
-					// Create Policy Frontend Element
-					var topicPoliciesDiv = document.getElementById("topicPolicies");
-					var newTopicPolicy = document.createElement("label");
-					newTopicPolicy.className = "policy"
-
-					// Create Policy object and add data to Frontend element
-					var policy = {
-						policyType: policyType,
-						policyCategory: policyData.policy_category,
-						values: {},
-					};
-					for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-						var element = document.getElementsByClassName("input " + policyType)[index];
-						// TODO validate input field?
-						switch (element.type) {
-							case "checkbox":
-								policy.values[element.id] = element.checked;
-								break;
-							case "int":
-								policy.values[element.id] = parseInt(element.value);
-								break;
-							case "number":
-								policy.values[element.id] = parseFloat(element.value);
-								break;
-							default:
-								policy.values[element.id] = element.value;
+					var duplicate = false;
+					// Check for duplicate
+					for (var policyIndex in $scope.policies) {
+						if ($scope.policies[policyIndex].policyType == policyType) {
+							duplicate = true;
 						}
 					}
-					$scope.policies.push(policy);
 
-					newTopicPolicy.id = policy.values.name;
-					newTopicPolicy.innerHTML = "<b>" + policy.policyType + "</b>: " + policy.values.name + " ";
-					for (var property in policy.values) {
-						if (property != "name") {
-							newTopicPolicy.innerHTML += "<i>[" + policy.values[property] + "];</i>";
-						}
-					}
-					newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
-					newTopicPolicy.innerHTML += "</i> &thinsp;";
+					if (!duplicate) {
+						// Create Policy Frontend Element
+						var topicPoliciesDiv = document.getElementById("topicPolicies");
+						var newTopicPolicy = document.createElement("label");
+						newTopicPolicy.className = "policy"
 
-					for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-						var element = document.getElementsByClassName("input " + policyType)[index];
-						element.value = "";
-					}
-
-					// Create Remove Button
-					var newTopicPolicyRemoveBtn = document.createElement("img");
-					newTopicPolicyRemoveBtn.className = "policy-remove-img";
-					newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
-					newTopicPolicyRemoveBtn.addEventListener("click", function () {
-						if (confirm("Do you really want to delete this Policy?")) {
-							// Clear Input
-							for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-								var element = document.getElementsByClassName("input " + policyType)[index];
-								if (element.type == "checkbox") {
-									element.checked = false;
-								} else {
-									element.value = "";
-								}
-							}
-							document.getElementById(policy.values.name).nextElementSibling.remove();
-							document.getElementById(policy.values.name).remove();
-							for (var index = $scope.policies.length - 1; index >= 0; index--) {
-								if ($scope.policies[index].values.name == policy.values.name) {
-									$scope.policies.splice(index, 1);
-								}
+						// Create Policy object and add data to Frontend element
+						var policy = {
+							policyType: policyType,
+							policyCategory: policyData.policy_category,
+							values: {},
+						};
+						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+							var element = document.getElementsByClassName("input " + policyType)[index];
+							switch (element.type) {
+								case "checkbox":
+									policy.values[element.id] = element.checked;
+									break;
+								case "int":
+									policy.values[element.id] = parseInt(element.value);
+									break;
+								case "number":
+									policy.values[element.id] = parseFloat(element.value);
+									break;
+								default:
+									policy.values[element.id] = element.value;
 							}
 						}
-					});
-					// Add Element to Frontend
-					newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
-					topicPoliciesDiv.appendChild(newTopicPolicy);
-					topicPoliciesDiv.appendChild(document.createElement("br"));
+						$scope.policies.push(policy);
 
+						newTopicPolicy.id = policy.values.name;
+						newTopicPolicy.innerHTML = "<b>" + policy.policyType + "</b>: " + policy.values.name + " ";
+						for (var property in policy.values) {
+							if (property != "name") {
+								newTopicPolicy.innerHTML += "<i>[" + policy.values[property] + "];</i>";
+							}
+						}
+						newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
+						newTopicPolicy.innerHTML += "</i> &thinsp;";
 
+						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+							var element = document.getElementsByClassName("input " + policyType)[index];
+							element.value = "";
+						}
+
+						// Create Remove Button
+						var newTopicPolicyRemoveBtn = document.createElement("img");
+						newTopicPolicyRemoveBtn.className = "policy-remove-img";
+						newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
+						newTopicPolicyRemoveBtn.addEventListener("click", function () {
+							if (confirm("Do you really want to delete this Policy?")) {
+								document.getElementById(policy.values.name).nextElementSibling.remove();
+								document.getElementById(policy.values.name).remove();
+								for (var index = $scope.policies.length - 1; index >= 0; index--) {
+									if ($scope.policies[index].values.name == policy.values.name) {
+										$scope.policies.splice(index, 1);
+									}
+								}
+							}
+						});
+						// Add Element to Frontend
+						newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
+						topicPoliciesDiv.appendChild(newTopicPolicy);
+						topicPoliciesDiv.appendChild(document.createElement("br"));
+
+						// Clear Input
+						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+							var element = document.getElementsByClassName("input " + policyType)[index];
+							if (element.type == "checkbox") {
+								element.checked = false;
+							} else {
+								element.value = "";
+							}
+						}
+					} else {
+						dangerNotifiction("Policy with policyType: [" + policyType + "] is already existing!");
+					}
 				});
+
 				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
 				tabContentDiv.appendChild(document.createElement("p"));
 				// TabContent Example Header
@@ -302,6 +313,13 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		});
 	};
 
+	$scope.policyToString = function (topic) {
+		var inputElement = document.getElementById("topic.policy.input_" + topic._id.$oid);
+		if (inputElement != undefined) {
+			inputElement.value = JSON.stringify(topic.policy);
+		}
+	}
+
 	$scope.cancelUpdateTopicDescription = function (topic) {
 		for (var i in $scope.backUpTopicDescription) {
 			if ($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid) {
@@ -315,18 +333,20 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		$scope.response = null;
 
 		var updateBody = {};
-		for (var key in topic) {
-			if ((key != "_id") && (topic[key] != "")) {
+		for(var key in topic){
+			if(key != "_id"){
+				if(key == "policy") {
+					topic[key] = JSON.parse(topic[key])
+				}
 				updateBody[key] = topic[key];
 			}
 		}
-
-		for (var i in $scope.backUpTopicDescription) {
-			if ($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid) {
+		for(var i in $scope.backUpTopicDescription){
+			if($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid){
 				$scope.backUpTopicDescription[i] = JSON.parse(JSON.stringify(topic));
 				break;
 			}
-		}
+		} 
 
 		$http({
 			method: 'PUT',
@@ -339,6 +359,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			$scope.status = response.status;
 			successNotifiction("Successfully updated topic description");
 		}, function (response) {
+			dangerNotifiction("Update topic description failed!");
 			console.log("Update failed (400)?");
 			switch (response.status) {
 				case -1:
@@ -690,7 +711,6 @@ app.controller('tdlCtrl', function ($scope, $http) {
 								showTopic = false;
 							}
 						}
-
 				}
 			}
 		}
