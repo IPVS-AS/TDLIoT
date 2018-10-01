@@ -3,6 +3,7 @@ package de.uni.stuttgart.ipvs.tdl.rest;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.google.common.collect.Lists;
+import com.mongodb.util.JSON;
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 import de.uni.stuttgart.ipvs.tdl.rest.validation.TopicDescriptionValidator;
 import net.minidev.json.JSONArray;
@@ -53,7 +54,13 @@ public class TDLRestController {
         try {
             ProcessingReport proRep = VALIDATOR.validateTopicOnJsonScheme(topicDescription);
             if (proRep.isSuccess()) {
-                JSONObject validationJSON = VALIDATOR.validateAllPolicies(new JSONObject(topicDescription).getJSONObject("policy"));
+                JSONObject topic = new JSONObject(topicDescription);
+                JSONObject validationJSON = new JSONObject();
+                if (topic.has("policy")) {
+                    validationJSON = VALIDATOR.validateAllPolicies(topic.getJSONObject("policy"));
+                } else {
+                    validationJSON.put(success, true);
+                }
                 if (validationJSON.getBoolean(success)) {
                     return ResponseEntity.ok().body(dbConnector.storeTopicDescription(topicDescription));
                 } else {
@@ -107,7 +114,13 @@ public class TDLRestController {
         try {
             ProcessingReport proRep = VALIDATOR.validateTopicOnJsonScheme(updateTopic);
             if (proRep.isSuccess()) {
-                JSONObject validationJSON = VALIDATOR.validateAllPolicies(new JSONObject(updateTopic).getJSONObject("policy"));
+                JSONObject topic = new JSONObject(updateTopic);
+                JSONObject validationJSON = new JSONObject();
+                if (topic.has("policy")) {
+                    validationJSON = VALIDATOR.validateAllPolicies(topic.getJSONObject("policy"));
+                } else {
+                    validationJSON.put(success, true);
+                }
                 if (validationJSON.getBoolean(success)) {
                     if (dbConnector.updateTopicDescription(id, updateTopic)) {
                         return new ResponseEntity<>(HttpStatus.ACCEPTED);

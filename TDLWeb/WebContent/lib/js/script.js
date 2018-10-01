@@ -33,6 +33,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 
 	$scope.swaggerUrl = serverUrl + "/swagger-ui.html";
 	var url = serverUrl + "/catalogue";
+	var verifyUrl = serverUrl + "/verify";
 
 	$scope.policies = [];
 
@@ -41,239 +42,243 @@ app.controller('tdlCtrl', function ($scope, $http) {
 
 	getTopicDescriptionsByFilter();
 
-	// Get policies from github repo
-	$http({
-		method: 'GET',
-		url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
-		headers: { "Content-Type": "application/json" }
-	}).then(function (response) {
-		for (var i in response.data) {
-			$http({
-				method: 'GET',
-				url: response.data[i].download_url,
-				headers: { "Content-Type": "text/plain" }
-			}).then(function (responsePolicy) {
-				// Get data from policytype file of github
-				var policyData = responsePolicy.data;
-				var policyType = policyData.policy_type.charAt(0).toUpperCase() + policyData.policy_type.substr(1);
-				var policyDesc = policyData.description;
-				var policyInput = policyData.input;
-				var policyExample = policyData.example;
+	getPolicyTypes();
 
-				// Create TabContent 
-				var tabContentDiv = document.createElement("div");
-				tabContentDiv.id = policyType;
-				tabContentDiv.className = "tabcontent";
-				// TabContent Header
-				var tabContentHeader = document.createElement("h3");
-				tabContentHeader.innerHTML = policyType;
-				tabContentDiv.appendChild(tabContentHeader);
-				// TabContent Description
-				var tabContentDescription = document.createElement("p");
-				tabContentDescription.innerHTML = policyDesc;
-				tabContentDiv.appendChild(tabContentDescription);
-				// TabContent Inputvalues Table
-				var tabContentTable = document.createElement("table");
-				tabContentTable.className = "table table-bordered";
-				// TabContent Inputvalues Table Body
-				var tabContentTableBody = document.createElement("tbody");
-				// TabContent Inputvalues Table Header Row
-				var tabContentTableHeaderRow = document.createElement("tr");
-				tabContentTableHeaderRow.style.backgroundColor = "#EEE";
-				// TabContent Inputvalues Table Header Elements
-				var tabContentTableHeaderElementName = document.createElement("th");
-				var tabContentTableHeaderElementDatatype = document.createElement("th");
-				var tabContentTableHeaderElementDescription = document.createElement("th");
-				var tabContentTableHeaderElementValues = document.createElement("th");
-				tabContentTableHeaderElementName.innerHTML = "Name";
-				tabContentTableHeaderElementDatatype.innerHTML = "Datatype";
-				tabContentTableHeaderElementDescription.innerHTML = "Description";
-				tabContentTableHeaderElementValues.innerHTML = "Your Values";
-				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementName);
-				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDatatype);
-				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDescription);
-				tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementValues);
-				tabContentTableBody.appendChild(tabContentTableHeaderRow);
-				// TabContent Inputvalues Table Policy Input Rows
-				for (var index in policyInput) {
-					var inputObject = policyInput[index];
-					var tabContentTableNewRow = document.createElement("tr");
-					var tabContentTableElementName = document.createElement("th");
-					var tabContentTableElementDatatype = document.createElement("th");
-					var tabContentTableElementDescription = document.createElement("th");
-					var tabContentTableElementValues = document.createElement("td");
-					tabContentTableElementName.innerHTML = inputObject.value;
-					tabContentTableElementDatatype.innerHTML = "[" + inputObject.datatype + "]";
-					tabContentTableElementDescription.innerHTML = inputObject.description;
+	function getPolicyTypes() {
+		// Get policies from github repo
+		$http({
+			method: 'GET',
+			url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
+			headers: { "Content-Type": "application/json" }
+		}).then(function (response) {
+			for (var i in response.data) {
+				$http({
+					method: 'GET',
+					url: response.data[i].download_url,
+					headers: { "Content-Type": "text/plain" }
+				}).then(function (responsePolicy) {
+					// Get data from policytype file of github
+					var policyData = responsePolicy.data;
+					var policyType = policyData.policy_type.charAt(0).toUpperCase() + policyData.policy_type.substr(1);
+					var policyDesc = policyData.description;
+					var policyInput = policyData.input;
+					var policyExample = policyData.example;
 
-					// Create Input Field
-					var inputField = document.createElement("input");
-					inputField.className = "input " + policyType;
-					inputField.id = inputObject.value;
-					switch (inputObject.datatype.toLowerCase()) {
-						case "boolean":
-							inputField.type = "checkbox";
-							break;
-						case "enum":
-							inputField = document.createElement("select");
-							inputField.className = "input " + policyType;
-							inputField.id = inputObject.value;
-							for (var enumIndex in inputObject.enum) {
-								var optionField = document.createElement("option");
-								optionField.value = inputObject.enum[enumIndex];
-								optionField.innerHTML = inputObject.enum[enumIndex];
-								inputField.appendChild(optionField);
-							}
-							break;
-						default:
-							inputField.type = inputObject.datatype;
+					// Create TabContent 
+					var tabContentDiv = document.createElement("div");
+					tabContentDiv.id = policyType;
+					tabContentDiv.className = "tabcontent";
+					// TabContent Header
+					var tabContentHeader = document.createElement("h3");
+					tabContentHeader.innerHTML = policyType;
+					tabContentDiv.appendChild(tabContentHeader);
+					// TabContent Description
+					var tabContentDescription = document.createElement("p");
+					tabContentDescription.innerHTML = policyDesc;
+					tabContentDiv.appendChild(tabContentDescription);
+					// TabContent Inputvalues Table
+					var tabContentTable = document.createElement("table");
+					tabContentTable.className = "table table-bordered";
+					// TabContent Inputvalues Table Body
+					var tabContentTableBody = document.createElement("tbody");
+					// TabContent Inputvalues Table Header Row
+					var tabContentTableHeaderRow = document.createElement("tr");
+					tabContentTableHeaderRow.style.backgroundColor = "#EEE";
+					// TabContent Inputvalues Table Header Elements
+					var tabContentTableHeaderElementName = document.createElement("th");
+					var tabContentTableHeaderElementDatatype = document.createElement("th");
+					var tabContentTableHeaderElementDescription = document.createElement("th");
+					var tabContentTableHeaderElementValues = document.createElement("th");
+					tabContentTableHeaderElementName.innerHTML = "Name";
+					tabContentTableHeaderElementDatatype.innerHTML = "Datatype";
+					tabContentTableHeaderElementDescription.innerHTML = "Description";
+					tabContentTableHeaderElementValues.innerHTML = "Your Values";
+					tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementName);
+					tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDatatype);
+					tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementDescription);
+					tabContentTableHeaderRow.appendChild(tabContentTableHeaderElementValues);
+					tabContentTableBody.appendChild(tabContentTableHeaderRow);
+					// TabContent Inputvalues Table Policy Input Rows
+					for (var index in policyInput) {
+						var inputObject = policyInput[index];
+						var tabContentTableNewRow = document.createElement("tr");
+						var tabContentTableElementName = document.createElement("th");
+						var tabContentTableElementDatatype = document.createElement("th");
+						var tabContentTableElementDescription = document.createElement("th");
+						var tabContentTableElementValues = document.createElement("td");
+						tabContentTableElementName.innerHTML = inputObject.value;
+						tabContentTableElementDatatype.innerHTML = "[" + inputObject.datatype + "]";
+						tabContentTableElementDescription.innerHTML = inputObject.description;
 
+						// Create Input Field
+						var inputField = document.createElement("input");
+						inputField.className = "input " + policyType;
+						inputField.id = inputObject.value;
+						switch (inputObject.datatype.toLowerCase()) {
+							case "boolean":
+								inputField.type = "checkbox";
+								break;
+							case "enum":
+								inputField = document.createElement("select");
+								inputField.className = "input " + policyType;
+								inputField.id = inputObject.value;
+								for (var enumIndex in inputObject.enum) {
+									var optionField = document.createElement("option");
+									optionField.value = inputObject.enum[enumIndex];
+									optionField.innerHTML = inputObject.enum[enumIndex];
+									inputField.appendChild(optionField);
+								}
+								break;
+							default:
+								inputField.type = inputObject.datatype;
+
+						}
+						tabContentTableElementValues.appendChild(inputField);
+						tabContentTableNewRow.appendChild(tabContentTableElementName);
+						tabContentTableNewRow.appendChild(tabContentTableElementDatatype);
+						tabContentTableNewRow.appendChild(tabContentTableElementDescription);
+						tabContentTableNewRow.appendChild(tabContentTableElementValues);
+						tabContentTableBody.appendChild(tabContentTableNewRow);
 					}
-					tabContentTableElementValues.appendChild(inputField);
-					tabContentTableNewRow.appendChild(tabContentTableElementName);
-					tabContentTableNewRow.appendChild(tabContentTableElementDatatype);
-					tabContentTableNewRow.appendChild(tabContentTableElementDescription);
-					tabContentTableNewRow.appendChild(tabContentTableElementValues);
-					tabContentTableBody.appendChild(tabContentTableNewRow);
-				}
-				tabContentTable.appendChild(tabContentTableBody);
-				tabContentDiv.appendChild(tabContentTable);
-				tabContentDiv.appendChild(document.createElement("p"));
-				// TabContent Add Policy Button
-				var tabContentAddButton = document.createElement("button");
-				tabContentAddButton.className = "btn btn-success";
-				tabContentAddButton.innerHTML = "Add new Policy";
-				tabContentAddButton.addEventListener("click", function () {
-					var duplicate = false;
-					// Check for duplicate
-					for (var policyIndex in $scope.policies) {
-						if ($scope.policies[policyIndex].policyType == policyType) {
-							duplicate = true;
-						}
-					}
-
-					if (!duplicate) {
-						// Create Policy Frontend Element
-						var topicPoliciesDiv = document.getElementById("topicPolicies");
-						var newTopicPolicy = document.createElement("label");
-						newTopicPolicy.className = "policy"
-
-						// Create Policy object and add data to Frontend element
-						var policy = {
-							policyType: policyType,
-							policyCategory: policyData.policy_category,
-							values: {},
-						};
-						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-							var element = document.getElementsByClassName("input " + policyType)[index];
-							switch (element.type) {
-								case "checkbox":
-									policy.values[element.id] = element.checked;
-									break;
-								case "int":
-									policy.values[element.id] = parseInt(element.value);
-									break;
-								case "number":
-									policy.values[element.id] = parseFloat(element.value);
-									break;
-								default:
-									policy.values[element.id] = element.value;
+					tabContentTable.appendChild(tabContentTableBody);
+					tabContentDiv.appendChild(tabContentTable);
+					tabContentDiv.appendChild(document.createElement("p"));
+					// TabContent Add Policy Button
+					var tabContentAddButton = document.createElement("button");
+					tabContentAddButton.className = "btn btn-success";
+					tabContentAddButton.innerHTML = "Add new Policy";
+					tabContentAddButton.addEventListener("click", function () {
+						var duplicate = false;
+						// Check for duplicate
+						for (var policyIndex in $scope.policies) {
+							if ($scope.policies[policyIndex].policyType == policyType) {
+								duplicate = true;
 							}
 						}
-						$scope.policies.push(policy);
 
-						newTopicPolicy.id = policy.values.name;
-						newTopicPolicy.innerHTML = "<b>" + policy.policyType + "</b>: " + policy.values.name + " ";
-						for (var property in policy.values) {
-							if (property != "name") {
-								newTopicPolicy.innerHTML += "<i>[" + policy.values[property] + "];</i>";
-							}
-						}
-						newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
-						newTopicPolicy.innerHTML += "</i> &thinsp;";
+						if (!duplicate) {
+							// Create Policy Frontend Element
+							var topicPoliciesDiv = document.getElementById("topicPolicies");
+							var newTopicPolicy = document.createElement("label");
+							newTopicPolicy.className = "policy"
 
-						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-							var element = document.getElementsByClassName("input " + policyType)[index];
-							element.value = "";
-						}
-
-						// Create Remove Button
-						var newTopicPolicyRemoveBtn = document.createElement("img");
-						newTopicPolicyRemoveBtn.className = "policy-remove-img";
-						newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
-						newTopicPolicyRemoveBtn.addEventListener("click", function () {
-							if (confirm("Do you really want to delete this Policy?")) {
-								document.getElementById(policy.values.name).nextElementSibling.remove();
-								document.getElementById(policy.values.name).remove();
-								for (var index = $scope.policies.length - 1; index >= 0; index--) {
-									if ($scope.policies[index].values.name == policy.values.name) {
-										$scope.policies.splice(index, 1);
-									}
+							// Create Policy object and add data to Frontend element
+							var policy = {
+								policyType: policyType,
+								policyCategory: policyData.policy_category,
+								values: {},
+							};
+							for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+								var element = document.getElementsByClassName("input " + policyType)[index];
+								switch (element.type) {
+									case "checkbox":
+										policy.values[element.id] = element.checked;
+										break;
+									case "int":
+										policy.values[element.id] = parseInt(element.value);
+										break;
+									case "number":
+										policy.values[element.id] = parseFloat(element.value);
+										break;
+									default:
+										policy.values[element.id] = element.value;
 								}
 							}
-						});
-						// Add Element to Frontend
-						newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
-						topicPoliciesDiv.appendChild(newTopicPolicy);
-						topicPoliciesDiv.appendChild(document.createElement("br"));
+							$scope.policies.push(policy);
 
-						// Clear Input
-						for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
-							var element = document.getElementsByClassName("input " + policyType)[index];
-							if (element.type == "checkbox") {
-								element.checked = false;
-							} else {
+							newTopicPolicy.id = policy.values.name;
+							newTopicPolicy.innerHTML = "<b>" + policy.policyType + "</b>: " + policy.values.name + " ";
+							for (var property in policy.values) {
+								if (property != "name") {
+									newTopicPolicy.innerHTML += "<i>[" + policy.values[property] + "];</i>";
+								}
+							}
+							newTopicPolicy.innerHTML = newTopicPolicy.innerHTML.slice(0, -5);
+							newTopicPolicy.innerHTML += "</i> &thinsp;";
+
+							for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+								var element = document.getElementsByClassName("input " + policyType)[index];
 								element.value = "";
 							}
+
+							// Create Remove Button
+							var newTopicPolicyRemoveBtn = document.createElement("img");
+							newTopicPolicyRemoveBtn.className = "policy-remove-img";
+							newTopicPolicyRemoveBtn.src = "images/icon-remove.svg";
+							newTopicPolicyRemoveBtn.addEventListener("click", function () {
+								if (confirm("Do you really want to delete this Policy?")) {
+									document.getElementById(policy.values.name).nextElementSibling.remove();
+									document.getElementById(policy.values.name).remove();
+									for (var index = $scope.policies.length - 1; index >= 0; index--) {
+										if ($scope.policies[index].values.name == policy.values.name) {
+											$scope.policies.splice(index, 1);
+										}
+									}
+								}
+							});
+							// Add Element to Frontend
+							newTopicPolicy.appendChild(newTopicPolicyRemoveBtn);
+							topicPoliciesDiv.appendChild(newTopicPolicy);
+							topicPoliciesDiv.appendChild(document.createElement("br"));
+
+							// Clear Input
+							for (var index = 0; index < document.getElementsByClassName("input " + policyType).length; index++) {
+								var element = document.getElementsByClassName("input " + policyType)[index];
+								if (element.type == "checkbox") {
+									element.checked = false;
+								} else {
+									element.value = "";
+								}
+							}
+						} else {
+							dangerNotifiction("Policy with policyType: [" + policyType + "] is already existing!");
 						}
-					} else {
-						dangerNotifiction("Policy with policyType: [" + policyType + "] is already existing!");
+					});
+
+					tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
+					tabContentDiv.appendChild(document.createElement("p"));
+					// TabContent Example Header
+					var tabContentExampleHeader = document.createElement("p");
+					tabContentExampleHeader.innerHTML = "<i>Example:</i>";
+					tabContentDiv.appendChild(tabContentExampleHeader);
+					// TabContent Example List
+					var tabContentExampleList = document.createElement("ul");
+					tabContentExampleList.style = "list-style-type:none";
+					// TabContent Example List Elements
+					for (var key in policyExample) {
+						var tabContentExampleListElement = document.createElement("li");
+						tabContentExampleListElement.innerHTML = "<i>" + key + ": " + policyExample[key] + "</i>";
+						tabContentExampleList.appendChild(tabContentExampleListElement);
 					}
+					tabContentDiv.appendChild(tabContentExampleList);
+
+					// Create TabButton
+					var tabButton = document.createElement("button");
+					tabButton.innerHTML = policyType;
+					tabButton.className = "tablinks";
+					tabButton.addEventListener("click", function (evt) {
+						var policyType = this.innerHTML
+						var i, tabcontent, tablinks;
+						tabcontent = document.getElementsByClassName("tabcontent");
+						for (i = 0; i < tabcontent.length; i++) {
+							tabcontent[i].style.display = "none";
+						}
+						tablinks = document.getElementsByClassName("tablinks");
+						for (i = 0; i < tablinks.length; i++) {
+							tablinks[i].className = tablinks[i].className.replace(" active", "");
+						}
+						document.getElementById(policyType).style.display = "block";
+						evt.currentTarget.className += " active";
+					});
+
+					// Add TabButton
+					document.getElementById("PolicyCatalog").appendChild(tabButton);
+					// Add TabContent
+					document.getElementById("addpolicy").appendChild(tabContentDiv);
 				});
-
-				tabContentDiv.appendChild(document.createElement("div").appendChild(tabContentAddButton));
-				tabContentDiv.appendChild(document.createElement("p"));
-				// TabContent Example Header
-				var tabContentExampleHeader = document.createElement("p");
-				tabContentExampleHeader.innerHTML = "<i>Example:</i>";
-				tabContentDiv.appendChild(tabContentExampleHeader);
-				// TabContent Example List
-				var tabContentExampleList = document.createElement("ul");
-				tabContentExampleList.style = "list-style-type:none";
-				// TabContent Example List Elements
-				for (var key in policyExample) {
-					var tabContentExampleListElement = document.createElement("li");
-					tabContentExampleListElement.innerHTML = "<i>" + key + ": " + policyExample[key] + "</i>";
-					tabContentExampleList.appendChild(tabContentExampleListElement);
-				}
-				tabContentDiv.appendChild(tabContentExampleList);
-
-				// Create TabButton
-				var tabButton = document.createElement("button");
-				tabButton.innerHTML = policyType;
-				tabButton.className = "tablinks";
-				tabButton.addEventListener("click", function (evt) {
-					var policyType = this.innerHTML
-					var i, tabcontent, tablinks;
-					tabcontent = document.getElementsByClassName("tabcontent");
-					for (i = 0; i < tabcontent.length; i++) {
-						tabcontent[i].style.display = "none";
-					}
-					tablinks = document.getElementsByClassName("tablinks");
-					for (i = 0; i < tablinks.length; i++) {
-						tablinks[i].className = tablinks[i].className.replace(" active", "");
-					}
-					document.getElementById(policyType).style.display = "block";
-					evt.currentTarget.className += " active";
-				});
-
-				// Add TabButton
-				document.getElementById("PolicyCatalog").appendChild(tabButton);
-				// Add TabContent
-				document.getElementById("addpolicy").appendChild(tabContentDiv);
-			});
-		}
-	});
+			}
+		});
+	}
 
 	$scope.searchInsidePolicy = function (id, searchText) {
 		for (var i in $scope.topicDescription) {
@@ -316,7 +321,10 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	$scope.policyToString = function (topic) {
 		var inputElement = document.getElementById("topic.policy.input_" + topic._id.$oid);
 		if (inputElement != undefined) {
-			inputElement.value = JSON.stringify(topic.policy);
+			var pretty = JSON.stringify(topic.policy, undefined, 4);
+			inputElement.value = pretty;
+		} else {
+			inputElement.value = "";
 		}
 	}
 
@@ -333,20 +341,20 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		$scope.response = null;
 
 		var updateBody = {};
-		for(var key in topic){
-			if(key != "_id"){
-				if(key == "policy") {
+		for (var key in topic) {
+			if (key != "_id") {
+				if (key == "policy") {
 					topic[key] = JSON.parse(topic[key])
 				}
 				updateBody[key] = topic[key];
 			}
 		}
-		for(var i in $scope.backUpTopicDescription){
-			if($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid){
+		for (var i in $scope.backUpTopicDescription) {
+			if ($scope.backUpTopicDescription[i]._id.$oid == topic._id.$oid) {
 				$scope.backUpTopicDescription[i] = JSON.parse(JSON.stringify(topic));
 				break;
 			}
-		} 
+		}
 
 		$http({
 			method: 'PUT',
@@ -371,6 +379,20 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			}
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
+		});
+	};
+
+	$scope.verifyPolicies = function (topic) {
+		$http({
+			method: 'POST',
+			url: verifyUrl + "/topic/" + topic._id.$oid + "/policies",
+			headers: { "Content-Type": "application/json" }
+		}).then(function (response) {
+			console.log("success2");
+			console.log(response);
+		}, function (response) {
+			console.log("failed2");
+			console.log(response.data);
 		});
 	};
 
