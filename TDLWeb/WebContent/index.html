@@ -68,6 +68,28 @@
 					</label>
 					<br />
 					<div id="filtersDiv" style="margin-bottom: 10px"></div>
+					<div>
+						<b>Verification: </b>
+						<label class="verification-label">
+							<img src="images/unknown.png" class="verification-icon" />
+							unknown
+						</label>
+						<label class="verification-label">
+							<img src="images/valid.png" class="verification-icon" />
+							valid
+						</label>
+						<label class="verification-label">
+							<img src="images/invalid.png" class="verification-icon" />
+							invalid
+						</label>
+						<label class="verification-label">
+							<img src="images/inProgress.gif" class="verification-icon" />
+							in progress
+						</label>
+
+						<b style="padding-left:50px">Reload table: </b>
+						<img src="images/reload.png" class="reload-icon" ng-click="reloadTable()" />
+					</div>
 					<table class="table table-bordered">
 						<tr style="background-color: #EEE">
 							<th ng-show="showId">
@@ -147,6 +169,13 @@
 								</br>
 								<label>
 									<input ng-model="searchText.path">
+								</label>
+							</th>
+							<th ng-show="showVerification">
+								verification
+								</br>
+								<label>
+									<input ng-model="searchText.verification">
 								</label>
 							</th>
 							<th ng-show="showPolicy">
@@ -235,10 +264,38 @@
 									</label>
 								</div>
 							</td>
+							<td ng-if="showVerification">
+								<div ng-show="isTopicOperational(topic._id.$oid)">
+									<label class="verification-label">
+										<img src="images/valid.png" class="verification-icon" />
+										Topic is online
+									</label>
+								</div>
+								<div ng-hide="isTopicOperational(topic._id.$oid)">
+									<label class="verification-label">
+										<img src="images/invalid.png" class="verification-icon" />
+										Topic is offline
+									</label>
+								</div>
+								<div ng-hide="updateMode" ng-repeat="(key,policy) in topic.verification">
+									<label>
+										<img ng-show="policy.current=='unknown'" src="images/unknown.png" class="verification-icon" />
+										<img ng-show="policy.current=='valid'" src="images/valid.png" class="verification-icon" />
+										<img ng-show="policy.current=='invalid'" src="images/invalid.png" class="verification-icon" />
+										<img ng-show="policy.current=='in progress'" src="images/inProgress.gif" class="verification-icon" />
+										{{key}}
+									</label>
+								</div>
+								<div ng-show="updateMode">
+									<label>
+										<input ng-model="topic.verification">
+									</label>
+								</div>
+							</td>
 							<td ng-if="showPolicy">
 								<div ng-hide="updateMode">
-									<a type="button" data-toggle="collapse" data-target="#policy_{{topic._id.$oid}}" class="btn btn-link"
-									 ng-click="collapsePolicy_td = !collapsePolicy_td" ng-init="collapsePolicy_td = false">
+									<a type="button" data-toggle="collapse" data-target="#policy_{{topic._id.$oid}}" class="btn btn-link" ng-click="collapsePolicy_td = !collapsePolicy_td"
+									 ng-init="collapsePolicy_td = false">
 										<span ng-show="!collapsePolicy_td">Show</span>
 										<span ng-show="collapsePolicy_td">Hide</span>
 									</a>
@@ -316,7 +373,6 @@
 									</label>
 								</td>
 							</tr>
-
 							<tr>
 								<td>
 									<div class="form-check">
@@ -420,7 +476,7 @@
 								<td>
 									<div class="form-check">
 										<label class="form-check-label">
-											<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = true"></input>
+											<input class="form-check-input" type="checkbox" ng-model="showOwner" ng-init="showOwner = false"></input>
 											owner
 										</label>
 									</div>
@@ -458,6 +514,21 @@
 								<td>
 									<label>
 										<input ng-model="searchText.path" ng-change="searchText.path == ''?searchText.path = undefined:1">
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" ng-model="showVerification" ng-init="showVerification = true"></input>
+											verification
+										</label>
+									</div>
+								</td>
+								<td>
+									<label>
+										<input ng-model="searchText.verification">
 									</label>
 								</td>
 							</tr>
@@ -742,6 +813,34 @@
 			padding: 6px 12px;
 			border: 1px solid #ccc;
 			border-top: none;
+		}
+
+		/* Vericication icon style */
+		.verification-icon {
+			padding: 2px;
+			height: 16px;
+			width: 16px;
+		}
+
+		.verification-label {
+			font-weight: normal !important;
+			border-block-end: 1px solid #00838F;
+		}
+
+		.reload-icon {
+			padding-bottom: 5px;
+			padding-top: 5px;
+			padding-left: 10px;
+			padding-right: 10px;
+			border-radius: 5px;
+			border-color: #202020;
+			height: 28px;
+			background-color: #337ab7
+		}
+
+		.reload-icon:hover {
+			background-color: #286090;
+			cursor: pointer;
 		}
 	</style>
 

@@ -280,6 +280,28 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		});
 	}
 
+	function getTopicsOperational() {
+		$scope.topicsOperational = {};
+		for (var index in $scope.topicDescription) {
+			var topic = $scope.topicDescription[index];
+			$http({
+				method: 'GET',
+				url: verifyUrl + "/topic/" + topic._id.$oid
+			}).then(function (response) {
+				console.log(response.data.id + "=" + response.data.msg);
+				$scope.topicsOperational[response.data.id] = response.data.msg;
+			});
+		}
+	}
+
+	$scope.isTopicOperational = function (id) {
+		if ($scope.topicsOperational[id] == "online") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	$scope.searchInsidePolicy = function (id, searchText) {
 		for (var i in $scope.topicDescription) {
 			if ($scope.topicDescription[i]._id.$oid == id) {
@@ -288,6 +310,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			}
 		}
 	}
+
 	$scope.removeTopicDescription = function (topic) {
 		$scope.response = null;
 
@@ -383,17 +406,24 @@ app.controller('tdlCtrl', function ($scope, $http) {
 	};
 
 	$scope.verifyPolicies = function (topic) {
-		$http({
-			method: 'POST',
-			url: verifyUrl + "/topic/" + topic._id.$oid + "/policies",
-			headers: { "Content-Type": "application/json" }
-		}).then(function (response) {
-			console.log("success2");
-			console.log(response);
-		}, function (response) {
-			console.log("failed2");
-			console.log(response.data);
-		});
+		var policyTypeList = [];
+		for (var index in topic.policy.topic) {
+			policyTypeList.push(topic.policy.topic[index].policy_type);
+		}
+		for (var index in topic.policy.message) {
+			policyTypeList.push(topic.policy.message[index].policy_type);
+		}
+		for (var index in policyTypeList) {
+			$http({
+				method: 'POST',
+				url: verifyUrl + "/topic/" + topic._id.$oid + "/policy/" + policyTypeList[index]
+			}).then(function (response) {
+				successNotifiction(response.data.msg);
+				getTopicDescriptionsByFilter();
+			}, function (response) {
+				dangerNotifiction(response.data.msg);
+			});
+		}
 	};
 
 	$scope.cancelInsertTopicDescription = function () {
@@ -646,8 +676,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			}
 
 			$scope.backUpTopicDescription = JSON.parse(JSON.stringify($scope.topicDescription));
-
-			successNotifiction("Successfully recvied filtered topic description");
+			getTopicsOperational();
 		}, function (response) {
 			switch (response.status) {
 				case -1:
@@ -660,6 +689,11 @@ app.controller('tdlCtrl', function ($scope, $http) {
 			$scope.data = response.data || 'Request failed';
 			$scope.status = response.status;
 		});
+	}
+
+	$scope.reloadTable = function () {
+		console.log("reloadTable");
+		getTopicDescriptionsByFilter();
 	}
 
 	$scope.checkFilterOperator = function () {

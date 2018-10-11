@@ -1,17 +1,15 @@
 package de.uni.stuttgart.ipvs.tdl.verification.policies;
 
-import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
-import de.uni.stuttgart.ipvs.tdl.enums.VerificationStatus;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.json.JSONObject;
 
-import java.util.Iterator;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-public class VerifyAuthentication implements Runnable {
-
-    private final String policyType = "Authentication";
+public class VerifyAuthentication implements IVerifyPolicy {
 
     private final JSONObject topic;
 
@@ -19,6 +17,9 @@ public class VerifyAuthentication implements Runnable {
         this.topic = topic;
     }
 
+    /**
+     *  Starts specific verification of different protocol types
+     */
     @Override
     public void run() {
         boolean valid = false;
@@ -28,50 +29,52 @@ public class VerifyAuthentication implements Runnable {
             case "HTTP":
                 valid = verifyHTTPAuthentication();
         }
-        storeVerificationResults(valid);
+        storeResults(topic, valid, "Authentication");
     }
 
+    /**
+     * Authentication verification of MQTT protocol
+     *
+     * @return verification success = true, failed = false
+     */
     private boolean verifyMQTTAuthentication() {
         try {
             MqttClient mqttclient = new MqttClient(topic.getString("middleware_endpoint"), MqttClient.generateClientId());
             mqttclient.connect();
             mqttclient.subscribe(topic.getString("path"));
-            // We subscribed without authentication. That is wrong.
+            // We subscribed without authentication, validation failed.
             return false;
         } catch (MqttSecurityException e) {
+            // Topic expect authentication, validation successfully ended
             return true;
-        } catch (MqttException e) {
+        } catch (MqttException | IllegalArgumentException e) {
+            // Validation failed
+            return false;
+        } catch (Exception e) {
+            // Something unexpected went wrong, validation failed
+            e.printStackTrace();
             return false;
         }
     }
 
+    /**
+     * Authentication verification of HTTP protocol
+     *
+     * @return verification success = true, failed = false
+     */
     private boolean verifyHTTPAuthentication() {
-        return false;
-    }
+        String url = topic.getString("middleware_endpoint") + topic.getString("path");
+        boolean valid = false;
+        try {
+            URL topicURL = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) topicURL.openConnection();
 
-    private void storeVerificationResults(boolean valid) {
-        JSONObject current = topic.getJSONObject("verification").getJSONObject("current");
-        JSONObject policies = current.getJSONObject("policies");
-
-        boolean verificationInProgress = false;
-        Iterator<String> keys = policies.keys();
-        while(keys.hasNext()) {
-            String key = keys.next();
-            if (key.equals(policyType)) {
-                if (valid) {
-                    policies.put(key, VerificationStatus.VALID.toString());
-                } else {
-                    policies.put(key, VerificationStatus.INVALID.toString());
-                }
-            }
-            if (policies.getString(key).equals(VerificationStatus.IN_PROGRESS.toString())) {
-                verificationInProgress = true;
-            }
+            // If responseCode == 403 (Forbidden) -> verification successful
+            valid = connection.getResponseCode() == 403;
+            connection.disconnect();
+        } catch (IOException ignored) {
+            // Verification failed
         }
-        if (!verificationInProgress) {
-            current.put("status", VerificationStatus.FINISHED.toString());
-        }
-        MongoDBConnector dbConnector = new MongoDBConnector();
-        dbConnector.updateTopicDescription(topic.getJSONObject("_id").getString("$oid"), topic.toString());
+        return valid;
     }
 }

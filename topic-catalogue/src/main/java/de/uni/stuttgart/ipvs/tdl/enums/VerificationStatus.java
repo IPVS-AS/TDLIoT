@@ -4,9 +4,8 @@ public enum VerificationStatus {
 
     VALID("valid"),
     INVALID("invalid"),
-    FINISHED("finished"),
     IN_PROGRESS("in progress"),
-    UNKNOWN("unkown");
+    UNKNOWN("unknown");
 
     private final String text;
 

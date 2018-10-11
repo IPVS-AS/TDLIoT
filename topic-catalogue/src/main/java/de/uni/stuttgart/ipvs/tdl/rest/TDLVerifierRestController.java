@@ -2,6 +2,7 @@ package de.uni.stuttgart.ipvs.tdl.rest;
 
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 import de.uni.stuttgart.ipvs.tdl.enums.VerificationStatus;
+import de.uni.stuttgart.ipvs.tdl.verification.policies.VerifyAuthentication;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONObject;
@@ -17,7 +18,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -37,22 +37,19 @@ public class TDLVerifierRestController {
 
     private final String verificationKey = "verification";
     private final String currentKey = "current";
-    private final String statusKey = "status";
-    private final String policiesKey = "policies";
-    private final String policyKey = "policy";
     private final String protocolKey = "protocol";
-    private final String timestampKey = "timestamp";
-    private final String topicKey = "topic";
-    private final String messageKey = "messageKey";
-    private final String policyTypeKey = "policy_type";
 
     /**
-     * @param id
-     * @return
+     * Check the topic whether it is operational
+     *
+     * @param id topic description id
+     * @return JSONObject with value "msg" that contains "online" or "offline" or failed message
      */
     @RequestMapping(method = GET, value = "/topic/{id}")
     @ResponseBody
     public ResponseEntity isTopicOperational(@PathVariable String id) {
+        JSONObject response = new JSONObject();
+        response.put("id", id);
         boolean operational = false;
         String topicDesc = dbConnector.getMatchedTopicDescription(id);
         if (topicDesc != null) {
@@ -62,7 +59,7 @@ public class TDLVerifierRestController {
             switch (topic.getString(protocolKey).toUpperCase()) {
                 case "MQTT":
                     try {
-                        operational = connectToMQTTTopic(topic.getString(middlewareEndpointKey), topic.getString(pathKey));
+                        operational = connectToMQTTTopic(topic.getString(middlewareEndpointKey));
                     } catch (MqttException | NullPointerException e) {
                         operational = false;
                     }
@@ -77,215 +74,155 @@ public class TDLVerifierRestController {
                     break;
             }
             if (operational) {
-                return ResponseEntity.ok("online");
+                response.put("msg", "online");
             } else {
-                return ResponseEntity.ok("offline");
+                response.put("msg", "offline");
             }
+            return ResponseEntity.ok(response.toString());
         } else {
-            return ResponseEntity.badRequest().body("No Topic with id: " + id);
+            response.put("msg", "No Topic with id: " + id);
+            return ResponseEntity.badRequest().body(response.toString());
         }
     }
 
     /**
-     * @param id
-     * @return
-     */
-    @RequestMapping(method = POST, value = "/topic/{id}/policies")
-    @ResponseBody
-    public ResponseEntity verifyPolicies(@PathVariable String id) {
-        String topicDesc = dbConnector.getMatchedTopicDescription(id);
-        if (topicDesc != null) {
-            JSONObject topic = new JSONObject(topicDesc);
-            if (topic.has(policyKey)) {
-                if (!verificationAlreadyRunning(topic)) {
-                    updateLastVerification(id);
-                    clearCurrentVerification(id);
-                    startVerificationExecutor(id);
-                }
-                JSONObject href = new JSONObject();
-                href.put("href", "/verify/" + id);
-                return ResponseEntity.accepted().body(href.toString());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Topic contains no policy");
-            }
-        } else {
-            return ResponseEntity.badRequest().body("No Topic with id: " + id);
-        }
-    }
-
-    /**
-     * @param id
-     * @return
-     */
-    @RequestMapping(method = GET, value = "/{id}")
-    @ResponseBody
-    public ResponseEntity getVerificationState(@PathVariable String id) {
-        String topicDesc = dbConnector.getMatchedTopicDescription(id);
-        if (topicDesc != null) {
-            JSONObject topic = new JSONObject(topicDesc);
-            if (topic.has(verificationKey)) {
-                return ResponseEntity.ok(topic.getJSONObject(verificationKey).getJSONObject(currentKey).getString(statusKey));
-            } else {
-                return ResponseEntity.badRequest().body("Please first start verification with \"/topic/" + id + "/policies\"");
-            }
-        } else {
-            return ResponseEntity.badRequest().body("No Topic with id: " + id);
-        }
-    }
-
-    /**
-     * @param topic
-     * @return
-     */
-    private boolean verificationAlreadyRunning(JSONObject topic) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
-        if (topic.has(verificationKey)) {
-            JSONObject verification = topic.getJSONObject(verificationKey);
-            if (verification.has(currentKey)) {
-                JSONObject current = verification.getJSONObject(currentKey);
-                if (current.getString(statusKey).equals(VerificationStatus.IN_PROGRESS.toString())) {
-                    // Set timestamp to latest verification starting point
-                    current.put(timestampKey, sdf.format(new Date()));
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @param id
-     */
-    private void updateLastVerification(String id) {
-        String topicDesc = dbConnector.getMatchedTopicDescription(id);
-
-        JSONObject topic = new JSONObject(topicDesc);
-        if (!topic.has(verificationKey)) {
-            topic.put(verificationKey, new JSONObject());
-        }
-
-        JSONObject verification = topic.getJSONObject(verificationKey);
-        if (verification.has(currentKey)) {
-            JSONObject currentVerification = verification.getJSONObject(currentKey);
-            String lastKey = "last";
-            verification.put(lastKey, currentVerification);
-        }
-        dbConnector.updateTopicDescription(id, topic.toString());
-    }
-
-    /**
-     * @param id
-     */
-    private void clearCurrentVerification(String id) {
-        String topicDesc = dbConnector.getMatchedTopicDescription(id);
-        JSONObject topic = new JSONObject(topicDesc);
-        JSONObject verification = topic.getJSONObject(verificationKey);
-        verification.put(currentKey, clearedVerification(topic.getJSONObject(policyKey)));
-        dbConnector.updateTopicDescription(id, topic.toString());
-    }
-
-    /**
-     * @param policy
-     * @return
-     */
-    private JSONObject clearedVerification(JSONObject policy) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
-        JSONObject current = new JSONObject();
-        current.put(timestampKey, sdf.format(new Date()));
-        current.put(statusKey, VerificationStatus.IN_PROGRESS.toString());
-        JSONObject policies = new JSONObject();
-        if (policy.has(topicKey)) {
-            for (int index = 0; index < policy.getJSONArray(topicKey).length(); index++) {
-                JSONObject singlePolicy = policy.getJSONArray(topicKey).getJSONObject(index);
-                policies.put(singlePolicy.getString(policyTypeKey), VerificationStatus.IN_PROGRESS.toString());
-            }
-        }
-        if (policy.has(messageKey)) {
-            for (int index = 0; index < policy.getJSONArray(messageKey).length(); index++) {
-                JSONObject singlePolicy = policy.getJSONArray(messageKey).getJSONObject(index);
-                policies.put(singlePolicy.getString(policyTypeKey), VerificationStatus.IN_PROGRESS.toString());
-            }
-        }
-        current.put(policiesKey, policies);
-        return current;
-    }
-
-    /**
-     * @param id
-     */
-    private void startVerificationExecutor(String id) {
-        String topicDesc = dbConnector.getMatchedTopicDescription(id);
-        JSONObject topic = new JSONObject(topicDesc);
-        JSONObject policy = topic.getJSONObject(policyKey);
-        ArrayList<String> policyTypes = new ArrayList<>();
-        if (policy.has(topicKey)) {
-            for (int index = 0; index < policy.getJSONArray(topicKey).length(); index++) {
-                JSONObject singlePolicy = policy.getJSONArray(topicKey).getJSONObject(index);
-                policyTypes.add(singlePolicy.getString(policyTypeKey));
-            }
-        }
-        if (policy.has(messageKey)) {
-            for (int index = 0; index < policy.getJSONArray(messageKey).length(); index++) {
-                JSONObject singlePolicy = policy.getJSONArray(messageKey).getJSONObject(index);
-                policyTypes.add(singlePolicy.getString(policyTypeKey));
-            }
-        }
-        String protocol = topic.getString(protocolKey).toUpperCase();
-        JSONObject policies = topic.getJSONObject(verificationKey).getJSONObject(currentKey).getJSONObject(policiesKey);
-        for (String policyType : policyTypes) {
-            switch (policyType) {
-                case "Authentication":
-                    switch (protocol) {
-                        case "MQTT":
-                            //verificationExecutor.execute();
-                            break;
-                        case "HTTP":
-                            //verificationExecutor.execute();
-                            break;
-                        default:
-                            policies.put(policyType, VerificationStatus.UNKNOWN.toString());
-                    }
-                    break;
-                case "Interval":
-                    switch (protocol) {
-                        case "MQTT":
-                            //verificationExecutor.execute();
-                            break;
-                        case "HTTP":
-                            //verificationExecutor.execute();
-                            break;
-                        default:
-                            policies.put(policyType, VerificationStatus.UNKNOWN.toString());
-                    }
-                    break;
-                default:
-                    policies.put(policyType, VerificationStatus.UNKNOWN.toString());
-            }
-        }
-
-        Iterator<String> keys = policies.keys();
-        boolean verificationInProgress = false;
-        while(keys.hasNext()) {
-            String key = keys.next();
-            if (policies.getString(key).equals(VerificationStatus.IN_PROGRESS.toString())) {
-                verificationInProgress = true;
-            }
-        }
-        if (!verificationInProgress) {
-            JSONObject current = topic.getJSONObject(verificationKey).getJSONObject(currentKey);
-            current.put(statusKey, VerificationStatus.FINISHED.toString());
-        }
-        dbConnector.updateTopicDescription(id, topic.toString());
-    }
-
-    /**
-     * Try to connect to broker
+     * Starts verification of specific topic and policy type
      *
-     * @param broker which serves this topic
-     * @param topic  to subscribe to with the standard callback
-     * @throws MqttException if an error while subscribing or connecting occurred
+     * @param id topic id
+     * @param policyType policy type
+     * @return JSONObject with message of status
      */
-    private boolean connectToMQTTTopic(String broker, String topic) throws MqttException {
+    @RequestMapping(method = POST, value = "/topic/{id}/policy/{policyType}")
+    @ResponseBody
+    public ResponseEntity verifyPolicies(@PathVariable String id, @PathVariable String policyType) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+        String topicDesc = dbConnector.getMatchedTopicDescription(id);
+        JSONObject response = new JSONObject();
+        HttpStatus responseStatus = HttpStatus.BAD_REQUEST;
+        if (topicDesc != null) {
+            JSONObject topic = new JSONObject(topicDesc);
+            String policyKey = "policy";
+            if (topic.has(policyKey)) {
+                if (!topic.has(verificationKey)) {
+                    topic.put(verificationKey, new JSONObject());
+                }
+                JSONObject verification = updatePolicyTypes(topic.getJSONObject(verificationKey), topic.getJSONObject(policyKey));
+                dbConnector.updateTopicDescription(id, topic.toString());
+
+                //Does policy type exists in topic?
+                if (verification.has(policyType)) {
+                    JSONObject verifiedPolicy = verification.getJSONObject(policyType);
+                    //verification already running?
+                    if (!verifiedPolicy.getString(currentKey).equals(VerificationStatus.IN_PROGRESS.toString())) {
+                        // Save last verification
+                        verifiedPolicy.put("last", verifiedPolicy.getString(currentKey));
+                        // Set current verification on "in progress"
+                        verifiedPolicy.put("timestamp", sdf.format(new Date()));
+                        verifiedPolicy.put(currentKey, VerificationStatus.IN_PROGRESS.toString());
+                        // Store changes DB
+                        dbConnector.updateVerification(id, policyType, verifiedPolicy);
+                        // Start Verification
+                        startVerificationExecutor(id, policyType);
+                        response.put("msg", "Successfully started verification of policy: " + policyType);
+                        responseStatus = HttpStatus.ACCEPTED;
+                    } else {
+                        response.put("msg", "Verification for " + policyType + " already running!");
+                        responseStatus = HttpStatus.ACCEPTED;
+                    }
+                } else {
+                    response.put("msg", "Topic does not contain this policy: " + policyType);
+                    responseStatus = HttpStatus.NOT_FOUND;
+                }
+            } else {
+                response.put("msg", "Topic contains no policy");
+                responseStatus = HttpStatus.NOT_FOUND;
+            }
+        }
+        else {
+            response.put("msg", "No Topic with id: " + id);
+        }
+        return ResponseEntity.status(responseStatus).body(response.toString());
+    }
+
+    /**
+     * Check if topic has more policies as last time at verification
+     *
+     * @param verification JSONObject topic has key verification
+     * @param policy JSONObject topic has key policy
+     * @return new verification JSONObject
+     */
+    private JSONObject updatePolicyTypes(JSONObject verification, JSONObject policy) {
+        ArrayList<String> policyTypeList = new ArrayList<>();
+        String topicKey = "topic";
+        String policyTypeKey = "policy_type";
+        if (policy.has(topicKey)) {
+            for (int index = 0; index < policy.getJSONArray(topicKey).length(); index++) {
+                JSONObject singlePolicy = policy.getJSONArray(topicKey).getJSONObject(index);
+                policyTypeList.add(singlePolicy.getString(policyTypeKey));
+            }
+        }
+        String messageKey = "message";
+        if (policy.has(messageKey)) {
+            for (int index = 0; index < policy.getJSONArray(messageKey).length(); index++) {
+                JSONObject singlePolicy = policy.getJSONArray(messageKey).getJSONObject(index);
+                policyTypeList.add(singlePolicy.getString(policyTypeKey));
+            }
+        }
+
+        for (String policyType : policyTypeList) {
+            if (!verification.has(policyType)) {
+                JSONObject newPolicyType = new JSONObject();
+                newPolicyType.put(currentKey, VerificationStatus.UNKNOWN.toString());
+                verification.put(policyType, newPolicyType);
+            }
+        }
+        return verification;
+    }
+
+    /**
+     * Starts verification runnable if exists
+     *
+     * @param id topic id
+     * @param policyType verification policy type
+     */
+    private void startVerificationExecutor(String id, String policyType) {
+        String topicDesc = dbConnector.getMatchedTopicDescription(id);
+        JSONObject topic = new JSONObject(topicDesc);
+        String protocol = topic.getString(protocolKey).toUpperCase();
+
+        JSONObject policyTypeVerification = topic.getJSONObject(verificationKey).getJSONObject(policyType);
+
+        switch (policyType) {
+            case "Authentication":
+                VerifyAuthentication va = new VerifyAuthentication(topic);
+                verificationExecutor.execute(va);
+            case "Interval":
+                switch (protocol) {
+                    case "MQTT":
+                        //verificationExecutor.execute();
+                        break;
+                    case "HTTP":
+                        //verificationExecutor.execute();
+                        break;
+                    default:
+                        policyTypeVerification.put(currentKey, VerificationStatus.UNKNOWN.toString());
+                }
+                break;
+            default:
+                policyTypeVerification.put(currentKey, VerificationStatus.UNKNOWN.toString());
+        }
+        dbConnector.updateVerification(id, policyType, policyTypeVerification);
+
+    }
+
+    /**
+     * Check MQTT Topic operational
+     *
+     * @param broker middleware endpoint, example: "tcp://192.168.178.2:1883"
+     * @return result of verification
+     * @throws MqttException if verification failed
+     */
+    private boolean connectToMQTTTopic(String broker) throws MqttException {
         if (broker.startsWith("tcp://") || broker.startsWith("ssl://")) {
             MqttClient mqttclient = new MqttClient(broker, MqttClient.generateClientId());
             mqttclient.connect();
@@ -297,9 +234,11 @@ public class TDLVerifierRestController {
     }
 
     /**
-     * @param url
-     * @return
-     * @throws IOException
+     * Check HTTP Topic operational
+     *
+     * @param url topic url
+     * @return result of verification
+     * @throws IOException if verification failed
      */
     private boolean connectToHTTPTopic(String url) throws IOException {
         if (url.startsWith("http://") || url.startsWith("https://")) {

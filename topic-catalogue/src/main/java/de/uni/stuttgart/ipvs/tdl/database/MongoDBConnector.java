@@ -1,5 +1,6 @@
 package de.uni.stuttgart.ipvs.tdl.database;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -140,6 +141,24 @@ public class MongoDBConnector {
 		Document updateTopicDocument = Document.parse(updateTopic);
 
 		return getTable().replaceOne(objectId, updateTopicDocument).wasAcknowledged();
+	}
+
+	public boolean updateVerification(final String id, String policyType, JSONObject policyTypeVerification) {
+		if(policyType == null || policyType.isEmpty() || policyTypeVerification == null) {
+            throw new IllegalArgumentException("No update parameter available!");
+        }
+
+        Document objectId = new Document("_id", new ObjectId(id));
+		BasicDBObject setUpdateFields = new BasicDBObject();
+
+		Iterator<String> keys = policyTypeVerification.keys();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            setUpdateFields.append("verification." + policyType + "." + key, policyTypeVerification.getString(key));
+        }
+        BasicDBObject setVerificationDocument = new BasicDBObject("$set", setUpdateFields);
+
+        return getTable().updateOne(objectId, setVerificationDocument).wasAcknowledged();
 	}
 
 	private MongoCollection<Document> getTable() {
