@@ -3,6 +3,7 @@ package de.uni.stuttgart.ipvs.tdl.rest;
 import de.uni.stuttgart.ipvs.tdl.database.MongoDBConnector;
 import de.uni.stuttgart.ipvs.tdl.enums.VerificationStatus;
 import de.uni.stuttgart.ipvs.tdl.verification.policies.VerifyAuthentication;
+import de.uni.stuttgart.ipvs.tdl.verification.policies.VerifyInterval;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONObject;
@@ -196,21 +197,15 @@ public class TDLVerifierRestController {
             case "Authentication":
                 VerifyAuthentication va = new VerifyAuthentication(topic);
                 verificationExecutor.execute(va);
+                break;
             case "Interval":
-                switch (protocol) {
-                    case "MQTT":
-                        //verificationExecutor.execute();
-                        break;
-                    case "HTTP":
-                        //verificationExecutor.execute();
-                        break;
-                    default:
-                        policyTypeVerification.put(currentKey, VerificationStatus.UNKNOWN.toString());
-                }
+                VerifyInterval vi = new VerifyInterval(topic);
+                verificationExecutor.execute(vi);
                 break;
             default:
                 policyTypeVerification.put(currentKey, VerificationStatus.UNKNOWN.toString());
         }
+        System.out.println(policyTypeVerification.toString());
         dbConnector.updateVerification(id, policyType, policyTypeVerification);
 
     }

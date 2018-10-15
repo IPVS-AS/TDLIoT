@@ -1,5 +1,6 @@
 package de.uni.stuttgart.ipvs.tdl.verification.policies;
 
+import de.uni.stuttgart.ipvs.tdl.enums.VerificationStatus;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
@@ -22,14 +23,17 @@ public class VerifyAuthentication implements IVerifyPolicy {
      */
     @Override
     public void run() {
-        boolean valid = false;
         switch (topic.getString("protocol").toUpperCase()) {
             case "MQTT":
-                valid = verifyMQTTAuthentication();
+                storeResults(topic, verifyMQTTAuthentication(), "Authentication");
+                break;
             case "HTTP":
-                valid = verifyHTTPAuthentication();
+                storeResults(topic, verifyHTTPAuthentication(), "Authentication");
+                break;
+            default:
+                storeResults(topic, VerificationStatus.UNKNOWN, "Authentication");
+
         }
-        storeResults(topic, valid, "Authentication");
     }
 
     /**
@@ -37,23 +41,23 @@ public class VerifyAuthentication implements IVerifyPolicy {
      *
      * @return verification success = true, failed = false
      */
-    private boolean verifyMQTTAuthentication() {
+    private VerificationStatus verifyMQTTAuthentication() {
         try {
             MqttClient mqttclient = new MqttClient(topic.getString("middleware_endpoint"), MqttClient.generateClientId());
             mqttclient.connect();
             mqttclient.subscribe(topic.getString("path"));
             // We subscribed without authentication, validation failed.
-            return false;
+            return VerificationStatus.INVALID;
         } catch (MqttSecurityException e) {
             // Topic expect authentication, validation successfully ended
-            return true;
+            return VerificationStatus.VALID;
         } catch (MqttException | IllegalArgumentException e) {
             // Validation failed
-            return false;
+            return VerificationStatus.INVALID;
         } catch (Exception e) {
             // Something unexpected went wrong, validation failed
             e.printStackTrace();
-            return false;
+            return VerificationStatus.INVALID;
         }
     }
 
@@ -62,19 +66,23 @@ public class VerifyAuthentication implements IVerifyPolicy {
      *
      * @return verification success = true, failed = false
      */
-    private boolean verifyHTTPAuthentication() {
+    private VerificationStatus verifyHTTPAuthentication() {
         String url = topic.getString("middleware_endpoint") + topic.getString("path");
-        boolean valid = false;
         try {
             URL topicURL = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) topicURL.openConnection();
 
             // If responseCode == 403 (Forbidden) -> verification successful
-            valid = connection.getResponseCode() == 403;
-            connection.disconnect();
+            if (connection.getResponseCode() == 403) {
+                connection.disconnect();
+                return VerificationStatus.VALID;
+            } else {
+                connection.disconnect();
+                return VerificationStatus.INVALID;
+            }
         } catch (IOException ignored) {
             // Verification failed
+            return VerificationStatus.INVALID;
         }
-        return valid;
     }
 }
