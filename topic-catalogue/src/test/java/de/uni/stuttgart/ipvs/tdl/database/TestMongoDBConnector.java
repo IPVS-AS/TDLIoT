@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -106,9 +107,12 @@ public class TestMongoDBConnector {
 	
 	@Test
 	public void testGetMatchedTopicDescriptionsWithoutExistingElements() {
-		Map<String, String> mapFilter = new HashMap<String, String>();
-		mapFilter.put("TestXYZ", "#1#2#3#4#5#6#7#8#9#0#");	
-		List<String> listJSONResults = connector.getMatchedTopicDescriptions(mapFilter);
+		JSONObject filter = new JSONObject("{\n" +
+				"    \"filters\": {\n" +
+				"        \"TestXYZ\": \"#1#2#3#4#5#6#7#8#9#0#\"\n" +
+				"    }\n" +
+				"}");
+		List<String> listJSONResults = connector.getMatchedTopicDescriptions(filter);
 		Assert.assertNotNull(listJSONResults);
 		Assert.assertEquals(0, listJSONResults.size());
 	}
@@ -122,12 +126,15 @@ public class TestMongoDBConnector {
 		storeTopicDescription("{ 'Test':'Test', 'Language':'Java', 'Meta': { 'id':'200' } }");
 		storeTopicDescription("{ 'Test':'Test', 'Language':'Java' }");
 		storeTopicDescription("{ 'Test':'Test', 'Meta': { 'id':'42' } }");
+
+		JSONObject filter = new JSONObject("{\n" +
+				"    \"filters\": {\n" +
+				"        \"Language\": \"Java\",\n" +
+				"        \"Meta.id\": \"42\"\n" +
+				"    }\n" +
+				"}");
 		
-		Map<String, String> mapFilter = new HashMap<String, String>();
-		mapFilter.put("Language", "Java");	
-		mapFilter.put("Meta.id", "42");	
-		
-		List<String> listJSONResults = connector.getMatchedTopicDescriptions(mapFilter);
+		List<String> listJSONResults = connector.getMatchedTopicDescriptions(filter);
 		Assert.assertNotNull(listJSONResults);
 		Assert.assertEquals(1, listJSONResults.size());
 	}

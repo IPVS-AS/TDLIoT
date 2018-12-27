@@ -1,0 +1,90 @@
+{
+  "definitions": {
+    "policy_assertion": {
+      "type": "object",
+      "properties": {
+        "policy_type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_type",
+        "name"
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "data_type": {
+      "type": "string"
+    },
+    "hardware_type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "location_type": {
+          "type": "string"
+        },
+        "location_value": {
+          "type": "string"
+        }
+      }
+    },
+    "message_format": {
+      "type": "string"
+    },
+    "message_structure": {
+      "type": "string"
+    },
+    "middleware_endpoint": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "topic_type": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/policy_assertion"
+          }
+        },
+        "message": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/policy_assertion"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "data_type",
+    "message_format",
+    "message_structure",
+    "middleware_endpoint",
+    "owner",
+    "path",
+    "protocol",
+    "topic_type"
+  ]
+}

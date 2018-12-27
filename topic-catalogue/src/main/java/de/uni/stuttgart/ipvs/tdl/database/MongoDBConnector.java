@@ -1,9 +1,11 @@
 package de.uni.stuttgart.ipvs.tdl.database;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.mongodb.BasicDBObject;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -12,6 +14,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
 import de.uni.stuttgart.ipvs.tdl.property.Properties;
+import org.json.JSONObject;
 
 public class MongoDBConnector {
 
@@ -67,29 +70,27 @@ public class MongoDBConnector {
 	/**
 	 * Returns all JSON documents with are matching to the provided filter values.
 	 * 
-	 * @param filters - Searching for this filter values.
+	 * @param filter - Searching for this filter values.
 	 * @return - All
 	 */
-	public List<String> getMatchedTopicDescriptions(final Map<String, String> filters) {
+	public List<String> getMatchedTopicDescriptions(final JSONObject filter) {
 
-		if(filters == null) {
+		if(filter == null) {
 			throw new IllegalArgumentException("Filter has to be initialized!");
 		}
-		
-		Document filterDocument = new Document();
-		filterDocument.putAll(filters);
 
-		
+		BasicDBObject queryFilter = BasicDBObject.parse(filter.toString());
+
 		List<String> results = new LinkedList<String>();
-		
-		MongoCursor<Document> cursor = getTable().find(filterDocument).iterator();
-	
+
+		MongoCursor<Document> cursor = getTable().find(queryFilter).iterator();
+
 		try {
 
 		    while (cursor.hasNext()) {
 		    	results.add(cursor.next().toJson());
 		    }
-		    
+
 		} finally {
 			cursor.close();
 		}
@@ -127,21 +128,37 @@ public class MongoDBConnector {
 	 * Update the JSON document with the provided id by the provided update parameters.
 	 * 
 	 * @param id - Update JSON document with this id.
-	 * @param updateParameter - Parameter with values for updating.
+	 * @param updateTopic - New Topic which replaces the old topic
 	 */
-	public boolean updateTopicDescription(final String id, final Map<String, String> updateParameter) {
+	public boolean updateTopicDescription(final String id, String updateTopic) {
 		
-		if(updateParameter == null || updateParameter.isEmpty()) {
+		if(updateTopic == null || updateTopic.isEmpty()) {
 			throw new IllegalArgumentException("No update parameter available!");
 		}
-		
+
 		Document objectId = new Document("_id", new ObjectId(id));
-		
-		Document updateParameterDocument = new Document();
-		updateParameterDocument.putAll(updateParameter);
-		Document updateDocument = new Document("$set", updateParameterDocument);
-				
-		return getTable().updateOne(objectId, updateDocument).wasAcknowledged();
+
+		Document updateTopicDocument = Document.parse(updateTopic);
+
+		return getTable().replaceOne(objectId, updateTopicDocument).wasAcknowledged();
+	}
+
+	public boolean updateVerification(final String id, String policyType, JSONObject policyTypeVerification) {
+		if(policyType == null || policyType.isEmpty() || policyTypeVerification == null) {
+            throw new IllegalArgumentException("No update parameter available!");
+        }
+
+        Document objectId = new Document("_id", new ObjectId(id));
+		BasicDBObject setUpdateFields = new BasicDBObject();
+
+		Iterator<String> keys = policyTypeVerification.keys();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            setUpdateFields.append("verification." + policyType + "." + key, policyTypeVerification.getString(key));
+        }
+        BasicDBObject setVerificationDocument = new BasicDBObject("$set", setUpdateFields);
+
+        return getTable().updateOne(objectId, setVerificationDocument).wasAcknowledged();
 	}
 
 	private MongoCollection<Document> getTable() {
