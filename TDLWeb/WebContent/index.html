@@ -86,9 +86,6 @@
 							<img src="images/inProgress.gif" class="verification-icon" />
 							in progress
 						</label>
-
-						<b style="padding-left:50px">Reload table: </b>
-						<img src="images/reload.png" class="reload-icon" ng-click="reloadTable()" />
 					</div>
 					<table class="table table-bordered">
 						<tr style="background-color: #EEE">
@@ -265,31 +262,33 @@
 								</div>
 							</td>
 							<td ng-if="showVerification">
-								<div ng-show="isTopicOperational(topic._id.$oid)">
-									<label class="verification-label">
-										<img src="images/valid.png" class="verification-icon" />
-										Topic is online
-									</label>
-								</div>
-								<div ng-hide="isTopicOperational(topic._id.$oid)">
-									<label class="verification-label">
-										<img src="images/invalid.png" class="verification-icon" />
-										Topic is offline
-									</label>
-								</div>
-								<div ng-hide="updateMode" ng-repeat="(key,policy) in topic.verification">
-									<label>
-										<img ng-show="policy.current=='unknown'" src="images/unknown.png" class="verification-icon" />
-										<img ng-show="policy.current=='valid'" src="images/valid.png" class="verification-icon" />
-										<img ng-show="policy.current=='invalid'" src="images/invalid.png" class="verification-icon" />
-										<img ng-show="policy.current=='in progress'" src="images/inProgress.gif" class="verification-icon" />
-										{{key}}
-									</label>
-								</div>
-								<div ng-show="updateMode">
-									<label>
-										<input ng-model="topic.verification">
-									</label>
+								<div class="row-verification">
+									<div class="column-verification left">
+										<div ng-show="isTopicOperational(topic._id.$oid)">
+											<label class="verification-label">
+												<img src="images/valid.png" class="verification-icon" />
+												Topic is online
+											</label>
+										</div>
+										<div ng-hide="isTopicOperational(topic._id.$oid)">
+											<label class="verification-label">
+												<img src="images/invalid.png" class="verification-icon" />
+												Topic is offline
+											</label>
+										</div>
+										<div ng-hide="updateMode" ng-repeat="(key,policy) in topic.verification">
+											<label>
+												<img ng-show="policy.current=='unknown'" src="images/unknown.png" class="verification-icon" />
+												<img ng-show="policy.current=='valid'" src="images/valid.png" class="verification-icon" />
+												<img ng-show="policy.current=='invalid'" src="images/invalid.png" class="verification-icon" />
+												<img ng-show="policy.current=='in progress'" src="images/inProgress.gif" class="verification-icon" />
+												{{key}}
+											</label>
+										</div>
+									</div>
+									<div ng-show="isVerificationInProgress(topic.verification)" class="column-verification right">
+											<img src="images/reload.png" class="reload-icon" ng-click="reloadTable()" />
+									</div>
 								</div>
 							</td>
 							<td ng-if="showPolicy">
@@ -637,18 +636,17 @@
 						</tr>
 					</table>
 					<div class="topic-policies-header">
-						<b style="float: left">Topic Policies</b>
+						<b style="float: left">Topic Policy Types</b>
 						<a type="button" data-toggle="collapse" data-target="#addpolicy" style="float: right" class="btn btn-success"
 						 ng-click="collapseAddPolicy = !collapseAddPolicy" ng-init="collapseAddPolicy = true">
-							<span ng-show="collapseAddPolicy">Show Policytypes</span>
-							<span ng-show="!collapseAddPolicy">Hide Policytypes</span>
+							<span ng-show="collapseAddPolicy">Show Policy Collection</span>
+							<span ng-show="!collapseAddPolicy">Hide Policy Collection</span>
 						</a>
 						<div style="clear: both;"></div>
 					</div>
 					<div id="topicPolicies" class="topic-policies"></div>
 					<div class="collapse" id="addpolicy">
-						<h2 id="addpolicy">Add Policy</h2>
-						Catalogue
+						<h2 id="addpolicy">Policy Collection</h2>
 						<div class="tab" id="PolicyCatalog"></div>
 					</div>
 					<br />
@@ -714,6 +712,7 @@
 
 		.filter-remove-img:hover {
 			background-color: #ccc;
+			cursor: pointer;
 		}
 
 		.filter-input-values {
@@ -734,6 +733,7 @@
 
 		.filter-add-img:hover {
 			background-color: rgb(33, 189, 150);
+			cursor: pointer;
 		}
 
 		/* Style the Policy */
@@ -770,6 +770,7 @@
 
 		.policy-remove-img:hover {
 			background-color: #ccc;
+			cursor: pointer;
 		}
 
 		/* Style the tab */
@@ -798,6 +799,7 @@
 
 		.tab button:hover {
 			background-color: #ddd;
+			cursor: pointer;
 		}
 
 		/* Create an active/current tablink class */
@@ -828,19 +830,36 @@
 		}
 
 		.reload-icon {
-			padding-bottom: 5px;
-			padding-top: 5px;
-			padding-left: 10px;
-			padding-right: 10px;
-			border-radius: 5px;
-			border-color: #202020;
+			padding: 4px;
+			border-radius: 50%;
+			margin-left: 5px;
 			height: 28px;
-			background-color: #337ab7
 		}
 
 		.reload-icon:hover {
-			background-color: #286090;
+			background-color: #ccc;
 			cursor: pointer;
+		}
+
+		.column-verification {
+			float: left;
+			padding: 10px;
+			/* Should be removed. Only for demonstration */
+		}
+
+		.left {
+			width: 75%;
+		}
+
+		.right {
+			width: 25%;
+		}
+
+		/* Clear floats after the columns */
+		.row-verification:after {
+			content: "";
+			display: table;
+			clear: both;
 		}
 	</style>
 

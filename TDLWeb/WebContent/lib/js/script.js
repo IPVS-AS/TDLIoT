@@ -44,11 +44,16 @@ app.controller('tdlCtrl', function ($scope, $http) {
 
 	getPolicyTypes();
 
+	// Problem with Topic description table
+	/* setInterval( function() {
+		getTopicDescriptionsByFilter()
+	}, 30000); */
+
 	function getPolicyTypes() {
 		// Get policies from github repo
 		$http({
 			method: 'GET',
-			url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types",
+			url: "https://api.github.com/repos/lehmansn/TDLPolicy/contents/policy_types?ref=verified",
 			headers: { "Content-Type": "application/json" }
 		}).then(function (response) {
 			for (var i in response.data) {
@@ -146,7 +151,7 @@ app.controller('tdlCtrl', function ($scope, $http) {
 					// TabContent Add Policy Button
 					var tabContentAddButton = document.createElement("button");
 					tabContentAddButton.className = "btn btn-success";
-					tabContentAddButton.innerHTML = "Add new Policy";
+					tabContentAddButton.innerHTML = "Add new Policy Type";
 					tabContentAddButton.addEventListener("click", function () {
 						var duplicate = false;
 						// Check for duplicate
@@ -288,7 +293,6 @@ app.controller('tdlCtrl', function ($scope, $http) {
 				method: 'GET',
 				url: verifyUrl + "/topic/" + topic._id.$oid
 			}).then(function (response) {
-				console.log(response.data.id + "=" + response.data.msg);
 				$scope.topicsOperational[response.data.id] = response.data.msg;
 			});
 		}
@@ -300,6 +304,15 @@ app.controller('tdlCtrl', function ($scope, $http) {
 		} else {
 			return false;
 		}
+	}
+
+	$scope.isVerificationInProgress = function (verification) {
+		for (var policyVerification in verification) {
+			if (verification[policyVerification].current == "in progress") {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	$scope.searchInsidePolicy = function (id, searchText) {
